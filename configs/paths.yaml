@@ -1,0 +1,7 @@
+raw_data: "data/raw/Dataset_.csv"
+processed_data: "data/processed/pre_shipment_dataset.csv"
+metrics_dir: "results/metrics"
+tables_dir: "results/tables"
+statistical_tests_dir: "results/statistical_tests"
+figures_dir: "figures"
+visuals_dir: "visuals"

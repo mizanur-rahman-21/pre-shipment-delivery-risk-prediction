@@ -1,0 +1,2 @@
+Comparison,XGB Correct / RF Wrong (b),XGB Wrong / RF Correct (c),McNemar Chi2 Statistic,P-Value,Statistical Significance,Accuracy Difference (b-c)/n,95% Confidence Interval
+XGBoost Classifier vs Random Forest Classifier,4644,939,2457.3914,0.0000e+00,Significant (p < 0.001),7.81%,"[7.51%, 8.11%]"

@@ -1,0 +1,4 @@
+Market Group,Sample Size,Evaluation Mode,Accuracy,Precision,Recall,F1 Score,ROC-AUC,PR-AUC,Brier Score,ECE,MCE
+Training Markets (Europe + LATAM),89172,5-Fold Cross-Validation OOF,91.95%,95.00%,90.14%,92.50%,97.14%,97.68%,0.0651,4.73%,19.21%
+Out-of-Domain Test Market (Pacific Asia),35481,Raw Uncalibrated OOD Test,70.22%,78.04%,64.66%,70.72%,77.26%,83.88%,0.2017,11.65%,20.98%
+Out-of-Domain Test Market (Pacific Asia),35481,Calibrated XGBoost (Isotonic 5-fold CV) OOD Test,70.19%,77.38%,65.58%,70.99%,77.36%,83.97%,0.1902,7.20%,17.14%

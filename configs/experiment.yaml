@@ -1,0 +1,19 @@
+seed: 42
+split_ratio: 0.70
+calibration_folds: 5
+decision_cost_model:
+  cost_late: 50.0
+  cost_intervene: 15.0
+  intervention_effectiveness: 0.85
+  analytical_optimal_threshold: 0.353
+risk_thresholds:
+  low_risk: 0.20
+  medium_risk: 0.50
+  high_risk: 0.80
+experiments:
+  - E1_baseline_benchmark
+  - E2_temporal_generalization
+  - E3_probability_calibration
+  - E4_risk_stratification
+  - E5_ablation_study
+  - E7_geographic_generalization

@@ -1,0 +1,54 @@
+Feature Name,Meaning,Prediction Availability,Decision,Reason
+Type,Payment transaction method,Before shipment,Keep,Known at order checkout.
+Days for shipping (real),Actual elapsed transit duration,After delivery,Remove,Target leakage. Recorded post-delivery.
+Days for shipment (scheduled),Promised SLA window (days),Before shipment,Keep,Established SLA target at checkout.
+Benefit per order,Net order profit margin,Before shipment,Keep,Cart price minus product cost.
+Sales per customer,Total customer checkout sales,Before shipment,Keep,Checkout order total.
+Delivery Status,"Outcome label (Advance, Late, Cancel, On Time)",After delivery,Remove,Direct outcome leakage.
+Late_delivery_risk,"Target variable (1 = Late, 0 = On Time/Advance)",Target,Target,Target variable for binary classification.
+Category Id,Product category code,Before shipment,Keep,Fixed catalog metadata.
+Category Name,Product category label,Before shipment,Keep,Fixed catalog metadata.
+Customer City,Customer shipping city,Before shipment,Keep,Provided at checkout.
+Customer Country,Customer shipping country,Before shipment,Keep,Provided at checkout.
+Customer Email,Customer email address,PII,Remove,Unneeded text PII.
+Customer Fname,Customer first name,PII,Remove,Unneeded text PII.
+Customer Id,Customer account ID,Before shipment,Keep,Account identifier.
+Customer Lname,Customer last name,PII,Remove,Unneeded text PII.
+Customer Password,Account password hash,PII,Remove,Sensitive security token.
+Customer Segment,"Consumer, Corporate, Home Office",Before shipment,Keep,Customer segment.
+Customer State,Customer shipping state,Before shipment,Keep,Provided at checkout.
+Customer Street,Street address,PII,Remove,Unneeded text PII.
+Customer Zipcode,Customer zip code,Before shipment,Remove,High-cardinality zip string.
+Department Id,Department code,Before shipment,Keep,Catalog hierarchy.
+Department Name,Department label,Before shipment,Keep,Catalog hierarchy.
+Latitude,Customer geolocation latitude,Before shipment,Keep,Geographic coordinate.
+Longitude,Customer geolocation longitude,Before shipment,Keep,Geographic coordinate.
+Market,Global trade market region,Before shipment,Keep,Fulfillment market assignment.
+Order City,Destination city,Before shipment,Keep,Routing location.
+Order Country,Destination country,Before shipment,Keep,Routing location.
+Order Customer Id,Customer order ID link,Before shipment,Keep,Order metadata.
+order date (DateOrders),Order placement timestamp,Before shipment,Keep,Used for pre-shipment time features.
+Order Id,Unique order ID,Before shipment,Keep,Primary key.
+Order Item Cardprod Id,Item product catalog ID,Before shipment,Keep,Catalog item ID.
+Order Item Discount,Discount dollar amount,Before shipment,Keep,Applied at checkout.
+Order Item Discount Rate,Discount percentage,Before shipment,Keep,Applied at checkout.
+Order Item Id,Line item ID,Before shipment,Keep,Line item key.
+Order Item Product Price,Unit price of item,Before shipment,Keep,Catalog price.
+Order Item Profit Ratio,Profit margin ratio,Before shipment,Keep,Calculated at checkout.
+Order Item Quantity,Quantity ordered,Before shipment,Keep,Cart item count.
+Sales,Gross cart value,Before shipment,Keep,Calculated at checkout.
+Order Item Total,Net line item total,Before shipment,Keep,Calculated at checkout.
+Order Profit Per Order,Order profit dollar amount,Before shipment,Keep,Calculated at checkout.
+Order Region,Logistics order region,Before shipment,Keep,Regional warehouse routing.
+Order State,Destination state,Before shipment,Keep,Routing location.
+Order Status,"Post-checkout status (COMPLETE, CLOSED, PROCESSING)",After checkout,Remove,Target leakage. Lifecycle status.
+Order Zipcode,Destination zip code,Before shipment,Remove,High cardinality zip string.
+Product Card Id,Product card ID,Before shipment,Keep,Catalog metadata.
+Product Category Id,Product category ID,Before shipment,Keep,Catalog metadata.
+Product Description,Product text description,Before shipment,Remove,Null text column.
+Product Image,Product image URL link,Before shipment,Remove,URL image string.
+Product Name,Product name label,Before shipment,Keep,Catalog metadata.
+Product Price,Retail product price,Before shipment,Keep,Catalog price.
+Product Status,Product availability code,Before shipment,Keep,Catalog status.
+shipping date (DateOrders),Actual warehouse dispatch timestamp,After dispatch,Remove,Target leakage. Recorded after dispatch.
+Shipping Mode,Selected carrier mode tier,Before shipment,Keep,Carrier tier selected at checkout.

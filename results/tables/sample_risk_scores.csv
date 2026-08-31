@@ -1,0 +1,11 @@
+Order ID,Calibrated Risk Probability,Risk Category
+1,0.0177,Low Risk
+2,1.0,Critical Risk
+3,0.3749,Medium Risk
+4,0.5004,High Risk
+5,0.8707,Critical Risk
+6,0.9451,Critical Risk
+7,0.1775,Low Risk
+8,0.0653,Low Risk
+9,0.7851,High Risk
+10,0.9631,Critical Risk

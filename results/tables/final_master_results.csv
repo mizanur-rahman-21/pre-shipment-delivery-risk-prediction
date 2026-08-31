@@ -1,0 +1,21 @@
+Model Name,Accuracy,Precision,Recall,F1 Score,ROC-AUC,PR-AUC,Training Time,Acc_num,Precision_num,Recall_num,F1_num,ROC_num,PR_num,Experiment,Split Window,Sample Size,Model Configuration,Brier Score,ECE,MCE,Calibration Method,Brier 95% CI,ECE 95% CI,Reliability,Resolution,Slope,Intercept,Fit Protocol,Feature Setting,Num Features,Market Group,Evaluation Mode
+XGBoost Classifier,82.07%,86.21%,78.50%,82.17%,89.63%,90.72%,58.43s,82.07,86.21,78.5,82.17,89.63,90.72,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+Random Forest Classifier,74.25%,83.37%,63.84%,72.31%,84.44%,86.66%,19.33s,74.25,83.37,63.84,72.31,84.44,86.66,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+Decision Tree Classifier,72.45%,74.96%,71.59%,73.24%,73.89%,79.91%,4.00s,72.45,74.96,71.59,73.24,73.89,79.91,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+Linear Discriminant Analysis (LDA),70.48%,80.87%,57.55%,67.25%,74.81%,79.16%,0.41s,70.48,80.87,57.55,67.25,74.81,79.16,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+Support Vector Machine (LinearSVC),70.37%,80.17%,58.10%,67.37%,74.86%,79.15%,4.34s,70.37,80.17,58.1,67.37,74.86,79.15,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+Logistic Regression,70.19%,78.90%,59.22%,67.66%,74.92%,79.24%,1.01s,70.19,78.9,59.22,67.66,74.92,79.24,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+Gaussian Naive Bayes,67.27%,75.12%,56.58%,64.55%,69.20%,73.99%,0.11s,67.27,75.12,56.58,64.55,69.2,73.99,E1: Baseline Benchmark,,,,,,,,,,,,,,,,,,
+,92.44%,95.37%,90.78%,93.01%,97.42%,97.92%,,,,,,,,E2: Temporal Validation,Historical Train (2015-2016),110634.0,Historical 5-Fold Cross-Validation (OOF),0.0632,5.73%,21.62%,,,,,,,,,,,,
+,69.58%,76.34%,64.52%,69.93%,76.10%,82.83%,,,,,,,,E2: Temporal Validation,Future Test (2017 Unseen),47415.0,Raw Uncalibrated XGBoost,0.2031,10.45%,22.07%,,,,,,,,,,,,
+,71.01%,83.37%,58.87%,69.01%,76.16%,82.91%,,,,,,,,E2: Temporal Validation,Future Test (2017 Unseen),47415.0,Calibrated XGBoost (Isotonic 5-fold CV),0.1859,1.25%,5.35%,,,,,,,,,,,,
+,,,,,,,,,,,,,,E3: Leak-Free Calibration,,,,0.1304,3.66%,9.00%,Raw Uncalibrated Model,"[0.1284, 0.1323]","[3.34%, 4.00%]",0.0018,0.1194,0.8263000249862671,0.04729999974370003,X_train only (No Test Leakage),,,,
+,,,,,,,,,,,,,,E3: Leak-Free Calibration,,,,0.1402,5.48%,12.36%,Platt Scaling (Sigmoid 5-fold CV),"[0.1386, 0.1418]","[5.13%, 5.80%]",0.0044,0.1123,1.2976,-0.0361,X_train 5-fold CV,,,,
+,,,,,,,,,,,,,,E3: Leak-Free Calibration,,,,0.1402,5.70%,14.30%,Isotonic Regression (5-fold CV),"[0.1387, 0.1416]","[5.44%, 6.06%]",0.0048,0.1039,1.4161,0.0294,X_train 5-fold CV,,,,
+,78.88%,84.15%,73.79%,78.63%,87.23%,88.85%,,,,,,,,E5: Ablation Study,,,,,,,,,,,,,,,Setting A: Full Candidate Features,97.0,,
+,78.69%,84.34%,73.11%,78.33%,87.16%,88.85%,,,,,,,,E5: Ablation Study,,,,,,,,,,,,,,,Setting B: Restricted Baseline Features,95.0,,
+,78.10%,83.22%,73.16%,77.87%,86.34%,88.28%,,,,,,,,E5: Ablation Study,,,,,,,,,,,,,,,Setting C: Strict Pre-Shipment Raw,61.0,,
+,78.88%,84.15%,73.79%,78.63%,87.23%,88.85%,,,,,,,,E5: Ablation Study,,,,,,,,,,,,,,,Setting D: Strict Pre-Shipment + Engineered,97.0,,
+,91.95%,95.00%,90.14%,92.50%,97.14%,97.68%,,,,,,,,E7: Geographic Robustness,,89172.0,,0.0651,4.73%,19.21%,,,,,,,,,,,Training Markets (Europe + LATAM),5-Fold Cross-Validation OOF
+,70.22%,78.04%,64.66%,70.72%,77.26%,83.88%,,,,,,,,E7: Geographic Robustness,,35481.0,,0.2017,11.65%,20.98%,,,,,,,,,,,Out-of-Domain Test Market (Pacific Asia),Raw Uncalibrated OOD Test
+,70.19%,77.38%,65.58%,70.99%,77.36%,83.97%,,,,,,,,E7: Geographic Robustness,,35481.0,,0.1902,7.20%,17.14%,,,,,,,,,,,Out-of-Domain Test Market (Pacific Asia),Calibrated XGBoost (Isotonic 5-fold CV) OOD Test

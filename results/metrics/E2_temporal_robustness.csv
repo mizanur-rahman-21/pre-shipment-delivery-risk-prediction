@@ -1,0 +1,4 @@
+Split Window,Sample Size,Model Configuration,Accuracy,Precision,Recall,F1 Score,ROC-AUC,PR-AUC,Brier Score,ECE,MCE
+Historical Train (2015-2016),110634,Historical 5-Fold Cross-Validation (OOF),92.44%,95.37%,90.78%,93.01%,97.42%,97.92%,0.0632,5.73%,21.62%
+Future Test (2017 Unseen),47415,Raw Uncalibrated XGBoost,69.58%,76.34%,64.52%,69.93%,76.10%,82.83%,0.2031,10.45%,22.07%
+Future Test (2017 Unseen),47415,Calibrated XGBoost (Isotonic 5-fold CV),71.01%,83.37%,58.87%,69.01%,76.16%,82.91%,0.1859,1.25%,5.35%

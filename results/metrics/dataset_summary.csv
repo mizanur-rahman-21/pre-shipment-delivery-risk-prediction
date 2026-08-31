@@ -1,0 +1,8 @@
+Metric,Value
+Total Records (Rows),180519
+Total Features (Columns),53
+Numerical Features,29
+Categorical Features,24
+Duplicate Records,22469
+Missing Target Values,22470
+Clean Target Records,158049

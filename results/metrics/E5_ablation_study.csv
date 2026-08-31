@@ -1,0 +1,5 @@
+Feature Setting,Num Features,Accuracy,Precision,Recall,F1 Score,ROC-AUC,PR-AUC
+Setting A: Full Candidate Features,97,78.88%,84.15%,73.79%,78.63%,87.23%,88.85%
+Setting B: Restricted Baseline Features,95,78.69%,84.34%,73.11%,78.33%,87.16%,88.85%
+Setting C: Strict Pre-Shipment Raw,61,78.10%,83.22%,73.16%,77.87%,86.34%,88.28%
+Setting D: Strict Pre-Shipment + Engineered,97,78.88%,84.15%,73.79%,78.63%,87.23%,88.85%

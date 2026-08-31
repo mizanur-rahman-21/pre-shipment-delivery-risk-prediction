@@ -1,0 +1,6 @@
+Experiment ID,Experiment Name,Test Protocol,Model Architecture,Accuracy,Precision,Recall,F1 Score,ROC-AUC,PR-AUC,Brier Score,ECE
+E1,Random Split ML Benchmark,"70/30 Stratified Holdout (47,415 test samples)",XGBoost Classifier,90.11%,93.70%,88.02%,90.77%,96.13%,96.88%,0.0781,5.24%
+E2,Temporal Validation Split,"2015-2016 Train / 2017 Future Test (47,415 test samples)",XGBoost Classifier,69.58%,76.34%,64.52%,69.93%,76.10%,82.83%,0.0795,5.40%
+E3,Probability Calibration,5-fold Cross-Validated Calibration on Test Set,XGBoost (Isotonic Regression),90.11%,93.70%,88.02%,90.77%,96.13%,96.88%,0.0868,3.50%
+E5,Pre-Shipment Ablation Study,70/30 Stratified Holdout (Setting B Restricted),XGBoost (Restricted Feature Set),90.61%,93.74%,88.95%,91.28%,96.31%,97.00%,0.0781,5.24%
+E7,Geographic Market Generalization,"Europe+LATAM Train / Pacific Asia Test (35,481 test samples)",XGBoost Classifier,70.22%,78.04%,64.66%,70.72%,77.26%,83.88%,N/A,N/A
