@@ -90,7 +90,7 @@ Raw Ingested Dataset (DataCo 180,519 Records)
           [Classifier Benchmarking (E1)]
        • Train 7 core machine-learning models
        • Peak Holdout Performance: XGBoost (90.11% Accuracy)
-       • Paired McNemar Test (χ² = 4443.69, p < 0.001)
+       • Paired McNemar Test (χ² = 2457.39, p < 0.001 with Edwards' correction)
                        │
                        ▼
     [Leak-Free Probability Calibration (E3)]
@@ -122,15 +122,16 @@ Raw Ingested Dataset (DataCo 180,519 Records)
 ## 5. Dataset & Data Quality Audit
 
 ### Dataset Description
-The study analyzes the **DataCo SMART Supply Chain Dataset**, capturing global commercial transactions across 5 trade markets (Europe, LATAM, Pacific Asia, USCA, Africa).
+The study analyzes the **DataCo SMART Supply Chain Dataset** (Constante et al., 2019, Mendeley Data, DOI: `10.17632/8gx2fvg2k6.1`), capturing global commercial transactions across 5 trade markets (Europe, LATAM, Pacific Asia, USCA, Africa).
 
-### Data Audit Roster
+### Data Audit & Disjointness Reconciliation
+An exhaustive topological audit reveals that duplicate records are a strict subset of unlabelled missing-target records ($\mathcal{S}_{\text{dup}} \subset \mathcal{S}_{\text{missing}}$). All 22,469 duplicates reside within the 22,470 unlabelled rows (which contain exactly 1 unique record). Removing unlabelled rows simultaneously resolves all duplicate artifacts, yielding an exact reconciliation: $180,519 - 22,470 = \mathbf{158,049}$.
 
 | Processing Stage | Record Count | Feature Count | Target Balance | Operational Filter & Audit Protocol |
 | :--- | :---: | :---: | :---: | :--- |
-| **Raw Ingested Dataset** | 180,519 | 53 | 54.82% Late | Ingested baseline load from raw repository. |
-| **Exact Duplicate Check** | 22,469 | 53 | — | Audited exact duplicate rows without silent removal. |
-| **Missing Target Removal** | 22,470 | 53 | — | Filtered unlabelled order records. |
+| **Raw Ingested Dataset** | 180,519 | 53 | 54.82% Late | Ingested baseline load from raw repository (`10.17632/8gx2fvg2k6.1`). |
+| **Exact Duplicate Check** | 22,469 | 53 | — | Audited duplicate rows; all 22,469 reside within unlabelled partition. |
+| **Missing Target Removal** | 22,470 | 53 | — | Filtered unlabelled order records (removes all 22,469 duplicates + 1 unique row). |
 | **Final Pre-Shipment Matrix** | **158,049** | **39** | **54.82% Late** | Usable clean pre-shipment feature matrix. |
 
 *Note: Data files are stored locally in `data/raw/` and processed in `data/processed/`. External users can access the public DataCo repository [here](https://www.kaggle.com/datasets/shashwatwork/dataco-smart-supply-chain-for-big-data).*

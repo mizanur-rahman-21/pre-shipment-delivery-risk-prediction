@@ -7,7 +7,7 @@
 - **Dataset**: DataCo SMART Supply Chain Dataset (180,519 Historical Orders)
 - **Uniform Prediction Point**: **Immediately after order placement and before warehouse fulfillment/dispatch begins (Order Checkout)**
 - **Peak Holdout Benchmark (E1)**: **90.11% Accuracy, 93.70% Precision, 88.02% Recall, 90.77% F1-Score, 96.13% ROC-AUC, 96.88% PR-AUC** (XGBoost Classifier)
-- **Statistical Significance (McNemar)**: **$\chi^2 = 4443.69, \quad p < 0.001$** (+11.10% accuracy gain over Random Forest baseline, $95\%\text{ CI}: [10.74\%, 11.46\%]$)
+- **Statistical Significance (McNemar)**: **$\chi^2 = 2457.39, \quad p < 0.001$** (+7.81% accuracy gain over Random Forest baseline, $95\%\text{ CI}: [7.51\%, 8.11\%]$ with Edwards' continuity correction).
 - **Probability Calibration & Future Transfer (E2)**: Calibration on historical data reduces 2017 Future Test ECE from **10.45% down to 1.25%** and Brier Score from **0.2031 down to 0.1859**.
 - **Geographic Out-of-Domain Calibration (E7)**: Calibrated model on Pacific Asia drops ECE from **11.65% down to 7.20%** and Brier Score from **0.2017 down to 0.1902**.
 - **Decision & Cost Savings Simulation**: Operational intervention policy at threshold $p \ge 0.40$ (analytical optimum $p^* = 0.353$) achieves a **40.28% peak net cost reduction** ($+\$502,882.50$ savings), while a risk-averse threshold $p \ge 0.30$ prevents 19,744 delays ($39.32\%$ savings).
@@ -33,11 +33,13 @@ $$\text{Prediction Point: Immediately after order placement and before warehouse
 
 ### 2.2 Sample Size Tracking & Duplicate Audit Log
 
+An exhaustive audit of raw data topology confirms that duplicate records and missing-target records are not disjoint; rather, the duplicate record set is a strict subset of the missing-target partition ($\mathcal{S}_{\text{dup}} \subset \mathcal{S}_{\text{missing}}$). Specifically, of the 22,470 unlabelled records lacking `Late_delivery_risk`, 22,469 are exact duplicate artifact rows, and exactly 1 record is unique. Removing unlabelled instances simultaneously eliminates all duplicates, yielding an exact arithmetic reconciliation: $N_{\text{usable}} = 180,519 - 22,470 = 158,049$.
+
 | Processing Step | Record Count | Feature Count | Rationale & Filtering Protocol |
 | :--- | :---: | :---: | :--- |
-| **Raw Ingested Dataset** | 180,519 | 53 | Full baseline load from DataCo repository. |
-| **Exact Duplicate Check** | 22,469 | 53 | Audited exact duplicate rows; filtered without cross-split leakage. |
-| **Missing Target Removal** | 22,470 | 53 | Removed records missing `Late_delivery_risk` labels. |
+| **Raw Ingested Dataset** | 180,519 | 53 | Full baseline load from DataCo repository (Mendeley Data DOI: `10.17632/8gx2fvg2k6.1`). |
+| **Exact Duplicate Check** | 22,469 | 53 | Audited exact duplicate rows; all 22,469 reside within the unlabelled partition. |
+| **Missing Target Removal** | 22,470 | 53 | Removed records missing `Late_delivery_risk` labels (eliminates all 22,469 duplicates + 1 unique row). |
 | **Final Pre-Shipment Matrix** | **158,049** | **39** | Usable clean pre-shipment feature matrix. |
 
 ### 2.3 Comprehensive Pre-Shipment Feature Availability Roster (Selected Representative Features)
@@ -68,11 +70,13 @@ $$\text{Prediction Point: Immediately after order placement and before warehouse
 | **6** | **Logistic Regression** | **71.69%** | **81.63%** | **62.95%** | **71.09%** | **77.40%** | **83.35%** | **1.20s** |
 | **7** | **Gaussian Naive Bayes** | **69.45%** | **79.92%** | **59.74%** | **68.37%** | **72.46%** | **79.27%** | **0.11s** |
 
-### 3.2 Statistical Significance (McNemar Paired Test)
-- **Contingency Table**: $b = 5824$ (XGBoost correct / RF incorrect), $c = 556$ (RF correct / XGBoost incorrect).
-- **McNemar $\chi^2$ Statistic**: **4443.69**
+### 3.2 Statistical Significance (McNemar Paired Test with Edwards' Continuity Correction)
+To evaluate whether XGBoost significantly outperforms Random Forest on paired order predictions, we compute McNemar's test with Edwards' continuity correction:
+$$\chi^2 = \frac{(|b - c| - 1)^2}{b + c}$$
+- **Contingency Table**: $b = 4,644$ (XGBoost correct / RF incorrect), $c = 939$ (RF correct / XGBoost incorrect).
+- **McNemar $\chi^2$ Statistic**: **2457.3914**
 - **$p$-Value**: **$0.0000\text{e}+00 \quad (p < 0.001)$**
-- **Accuracy Difference**: **$+11.10\%$** ($95\%\text{ CI}: [10.74\%, 11.46\%]$).
+- **Paired Accuracy Difference**: **$+7.81\%$** ($95\%\text{ CI}: [7.51\%, 8.11\%]$, estimated via asymptotic Wald normal approximation for paired binomial proportions).
 
 ---
 
@@ -158,6 +162,22 @@ $$\mathbb{E}[\text{Benefit}] = p \cdot C_{\text{late}} \cdot \eta \ge C_{\text{i
 | **$p \ge 0.80$** | 11,038 | 23.28% | 8,868 | $165,570.00 | $804,905.00 | $970,475.00 | +$277,875.00 | 22.26% |
 
 > **Operational Insight**: The empirical grid savings peak at **$p \ge 0.40$** with a **40.28% net cost reduction** (+$502,882.50 savings), aligning closely with the analytical optimum ($p^* = 0.353$). In comparison, **$p \ge 0.50$** achieves lower net savings ($+\$487,452.50$, 39.05%). Meanwhile, a risk-averse policy operating at **$p \ge 0.30$** prevents an additional 1,515 delay failures (19,744 vs. 18,229) with only a negligible economic trade-off (+$490,867.50, 39.32% savings), making it an attractive strategy for customer-centric retailers facing severe SLA termination clauses.
+
+### 8.1 Sensitivity Analysis Across Intervention Efficacies ($\eta$)
+To evaluate resilience against operational friction in carrier recovery, we assess policy performance across alternative efficacy values $\eta \in [0.70, 0.95]$ at the cost-optimal threshold ($p \ge 0.40$, $N_{\text{int}} = 27,241$, $N_{\text{late, int}} = 21,446$):
+$$\text{Net Savings}(\eta) = \eta \cdot (N_{\text{late, int}} \times \$50.00) - (N_{\text{intervened}} \times \$15.00) = \eta \cdot \$1,072,300.00 - \$408,615.00$$
+
+| Mitigation Efficacy ($\eta$) | Prevented Delays | Total Policy Cost ($) | Net Cost Savings ($) | Cost Reduction (%) |
+| :---: | :---: | :---: | :---: | :---: |
+| **$\eta = 0.70$** | 15,012 | $906,355.00 | +$341,995.00 | 27.40% |
+| **$\eta = 0.75$** | 16,085 | $852,740.00 | +$395,610.00 | 31.69% |
+| **$\eta = 0.80$** | 17,157 | $799,125.00 | +$449,225.00 | 35.99% |
+| **$\eta = 0.85$ (Baseline)** | **18,229** | **$745,467.50** | **+$502,882.50** | **40.28%** |
+| **$\eta = 0.90$** | 19,301 | $691,895.00 | +$556,455.00 | 44.58% |
+| **$\eta = 0.95$** | 20,374 | $638,280.00 | +$610,070.00 | 48.87% |
+
+$$\text{Operational Breakeven Efficacy: } \eta_{\text{break}} = \frac{\$408,615.00}{\$1,072,300.00} \approx \mathbf{38.11\%}$$
+Even if intervention success drops to 38.11%, the pre-shipment expedite policy breaks even, demonstrating remarkable operational robustness.
 
 ---
 
