@@ -89,7 +89,7 @@ Raw Ingested Dataset (DataCo 180,519 Records)
                        ▼
           [Classifier Benchmarking (E1)]
        • Train 7 core machine-learning models
-       • Peak Holdout Performance: XGBoost (90.11% Accuracy)
+       • Peak Holdout Performance: XGBoost (82.07% Accuracy)
        • Paired McNemar Test (χ² = 2457.39, p < 0.001 with Edwards' correction)
                        │
                        ▼
@@ -175,6 +175,20 @@ The benchmark evaluates 7 standard classification algorithms:
 7. **Gaussian Naive Bayes**: Probabilistic baseline (`var_smoothing=1e-2`).
 
 Implementation details are located in `src/models.py`.
+
+### Baseline Classifier Benchmark Results (Experiment E1 — 47,415 Samples)
+
+| Rank | Model Architecture | Accuracy | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Training Time |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 🥇 **1** | **XGBoost Classifier (Tuned)** | **82.07%** | **86.21%** | **78.50%** | **82.17%** | **89.63%** | **90.72%** | **58.43s** |
+| 🥈 **2** | **Random Forest Classifier** | **74.25%** | **83.37%** | **63.84%** | **72.31%** | **84.44%** | **86.66%** | **19.33s** |
+| 🥉 **3** | **Decision Tree Classifier** | **72.45%** | **74.96%** | **71.59%** | **73.24%** | **73.89%** | **79.91%** | **4.00s** |
+| **4** | **Linear Discriminant Analysis (LDA)** | **70.48%** | **80.87%** | **57.55%** | **67.25%** | **74.81%** | **79.16%** | **0.41s** |
+| **5** | **Support Vector Machine (LinearSVC)** | **70.37%** | **80.17%** | **58.10%** | **67.37%** | **74.86%** | **79.15%** | **4.34s** |
+| **6** | **Logistic Regression** | **70.19%** | **78.90%** | **59.22%** | **67.66%** | **74.92%** | **79.24%** | **1.01s** |
+| **7** | **Gaussian Naive Bayes** | **67.27%** | **75.12%** | **56.58%** | **64.55%** | **69.20%** | **73.99%** | **0.11s** |
+
+*Visual representations are available in `figures/model_performance/` (`08_model_performance_comparison.png`, `08b_multi_metric_model_comparison.png`, `09_roc_curves.png`, `10_precision_recall_curves.png`, `11_confusion_matrix.png`).*
 
 ---
 
