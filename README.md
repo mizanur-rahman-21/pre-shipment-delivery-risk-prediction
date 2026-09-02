@@ -89,7 +89,7 @@ Raw Ingested Dataset (DataCo 180,519 Records)
                        ▼
           [Classifier Benchmarking (E1)]
        • Train 7 core machine-learning models
-       • Peak Holdout Performance: XGBoost (82.07% Accuracy)
+       • Peak Holdout Performance: XGBoost (90.11% Accuracy)
        • Paired McNemar Test (χ² = 2457.39, p < 0.001 with Edwards' correction)
                        │
                        ▼
@@ -176,20 +176,6 @@ The benchmark evaluates 7 standard classification algorithms:
 
 Implementation details are located in `src/models.py`.
 
-### Baseline Classifier Benchmark Results (Experiment E1 — 47,415 Samples)
-
-| Rank | Model Architecture | Accuracy | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Training Time |
-| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 🥇 **1** | **XGBoost Classifier (Tuned)** | **82.07%** | **86.21%** | **78.50%** | **82.17%** | **89.63%** | **90.72%** | **58.43s** |
-| 🥈 **2** | **Random Forest Classifier** | **74.25%** | **83.37%** | **63.84%** | **72.31%** | **84.44%** | **86.66%** | **19.33s** |
-| 🥉 **3** | **Decision Tree Classifier** | **72.45%** | **74.96%** | **71.59%** | **73.24%** | **73.89%** | **79.91%** | **4.00s** |
-| **4** | **Linear Discriminant Analysis (LDA)** | **70.48%** | **80.87%** | **57.55%** | **67.25%** | **74.81%** | **79.16%** | **0.41s** |
-| **5** | **Support Vector Machine (LinearSVC)** | **70.37%** | **80.17%** | **58.10%** | **67.37%** | **74.86%** | **79.15%** | **4.34s** |
-| **6** | **Logistic Regression** | **70.19%** | **78.90%** | **59.22%** | **67.66%** | **74.92%** | **79.24%** | **1.01s** |
-| **7** | **Gaussian Naive Bayes** | **67.27%** | **75.12%** | **56.58%** | **64.55%** | **69.20%** | **73.99%** | **0.11s** |
-
-*Visual representations are available in `figures/model_performance/` (`08_model_performance_comparison.png`, `08b_multi_metric_model_comparison.png`, `09_roc_curves.png`, `10_precision_recall_curves.png`, `11_confusion_matrix.png`).*
-
 ---
 
 ## 8. Experimental Design
@@ -202,6 +188,20 @@ Implementation details are located in `src/models.py`.
 | **E4** | Risk Stratification | Holdout Test Set | Operational Tiers | Risk Category Proportions | `results/metrics/E4_risk_score_distribution.csv` |
 | **E5** | Feature Ablation Study | Feature Subsets A, B, C, D | 30% Holdout (47,415) | Accuracy, F1, ROC-AUC, PR-AUC | `results/metrics/E5_ablation_study.csv` |
 | **E7** | Geographic Generalization | Europe + LATAM | Pacific Asia OOD | Accuracy, ROC-AUC, Brier, ECE | `results/metrics/E7_geographic_robustness.csv` |
+
+### Baseline Model Benchmark Results (Experiment E1 — 47,415 Holdout Samples)
+
+| Rank | Model Name | Accuracy | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Training Time |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 🥇 1 | **XGBoost Classifier (Tuned)** | **90.11%** | **93.70%** | **88.02%** | **90.77%** | **96.13%** | **96.88%** | **57.45s** |
+| 🥈 2 | **Random Forest Classifier** | **79.01%** | **88.58%** | **71.20%** | **78.95%** | **91.06%** | **92.91%** | **19.31s** |
+| 🥉 3 | **Decision Tree Classifier** | **78.09%** | **81.54%** | **78.03%** | **79.75%** | **82.03%** | **87.12%** | **4.03s** |
+| 4 | Linear Discriminant Analysis (LDA) | 72.23% | 84.27% | 61.19% | 70.90% | 77.32% | 83.28% | 0.43s |
+| 5 | Support Vector Machine (LinearSVC) | 72.13% | 83.57% | 61.71% | 71.00% | 77.34% | 83.30% | 5.74s |
+| 6 | Logistic Regression | 71.69% | 81.63% | 62.95% | 71.09% | 77.40% | 83.35% | 1.20s |
+| 7 | Gaussian Naive Bayes | 69.45% | 79.92% | 59.74% | 68.37% | 72.46% | 79.27% | 0.11s |
+
+*Full machine-readable benchmark records are stored in `results/tables/model_comparison_benchmark.csv` and `results/metrics/E1_baseline_benchmark.csv`.*
 
 ---
 

@@ -1,0 +1,8 @@
+Rank,Model Name,Accuracy,Precision,Recall,F1 Score,ROC-AUC,PR-AUC,Training Time
+🥇 1,XGBoost Classifier (Tuned),90.11%,93.70%,88.02%,90.77%,96.13%,96.88%,57.45s
+🥈 2,Random Forest Classifier,79.01%,88.58%,71.20%,78.95%,91.06%,92.91%,19.31s
+🥉 3,Decision Tree Classifier,78.09%,81.54%,78.03%,79.75%,82.03%,87.12%,4.03s
+4,Linear Discriminant Analysis (LDA),72.23%,84.27%,61.19%,70.90%,77.32%,83.28%,0.43s
+5,Support Vector Machine (LinearSVC),72.13%,83.57%,61.71%,71.00%,77.34%,83.30%,5.74s
+6,Logistic Regression,71.69%,81.63%,62.95%,71.09%,77.40%,83.35%,1.20s
+7,Gaussian Naive Bayes,69.45%,79.92%,59.74%,68.37%,72.46%,79.27%,0.11s

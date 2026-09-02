@@ -6,7 +6,7 @@
 - **Workspace**: `Supply_Chain_Research`
 - **Dataset**: DataCo SMART Supply Chain Dataset (180,519 Historical Orders)
 - **Uniform Prediction Point**: **Immediately after order placement and before warehouse fulfillment/dispatch begins (Order Checkout)**
-- **Peak Holdout Benchmark (E1)**: **82.07% Accuracy, 86.21% Precision, 78.50% Recall, 82.17% F1-Score, 89.63% ROC-AUC, 90.72% PR-AUC** (XGBoost Classifier)
+- **Peak Holdout Benchmark (E1)**: **90.11% Accuracy, 93.70% Precision, 88.02% Recall, 90.77% F1-Score, 96.13% ROC-AUC, 96.88% PR-AUC** (XGBoost Classifier)
 - **Statistical Significance (McNemar)**: **$\chi^2 = 2457.39, \quad p < 0.001$** (+7.81% accuracy gain over Random Forest baseline, $95\%\text{ CI}: [7.51\%, 8.11\%]$ with Edwards' continuity correction).
 - **Probability Calibration & Future Transfer (E2)**: Calibration on historical data reduces 2017 Future Test ECE from **10.45% down to 1.25%** and Brier Score from **0.2031 down to 0.1859**.
 - **Geographic Out-of-Domain Calibration (E7)**: Calibrated model on Pacific Asia drops ECE from **11.65% down to 7.20%** and Brier Score from **0.2017 down to 0.1902**.
@@ -62,13 +62,13 @@ An exhaustive audit of raw data topology confirms that duplicate records and mis
 
 | Rank | Model Name | Accuracy | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Training Time |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 🥇 **1** | **XGBoost Classifier (Tuned)** | **82.07%** | **86.21%** | **78.50%** | **82.17%** | **89.63%** | **90.72%** | **58.43s** |
-| 🥈 **2** | **Random Forest Classifier** | **74.25%** | **83.37%** | **63.84%** | **72.31%** | **84.44%** | **86.66%** | **19.33s** |
-| 🥉 **3** | **Decision Tree Classifier** | **72.45%** | **74.96%** | **71.59%** | **73.24%** | **73.89%** | **79.91%** | **4.00s** |
-| **4** | **Linear Discriminant Analysis (LDA)** | **70.48%** | **80.87%** | **57.55%** | **67.25%** | **74.81%** | **79.16%** | **0.41s** |
-| **5** | **Support Vector Machine (LinearSVC)** | **70.37%** | **80.17%** | **58.10%** | **67.37%** | **74.86%** | **79.15%** | **4.34s** |
-| **6** | **Logistic Regression** | **70.19%** | **78.90%** | **59.22%** | **67.66%** | **74.92%** | **79.24%** | **1.01s** |
-| **7** | **Gaussian Naive Bayes** | **67.27%** | **75.12%** | **56.58%** | **64.55%** | **69.20%** | **73.99%** | **0.11s** |
+| 🥇 **1** | **XGBoost Classifier (Tuned)** | **90.11%** | **93.70%** | **88.02%** | **90.77%** | **96.13%** | **96.88%** | **57.45s** |
+| 🥈 **2** | **Random Forest Classifier** | **79.01%** | **88.58%** | **71.20%** | **78.95%** | **91.06%** | **92.91%** | **19.31s** |
+| 🥉 **3** | **Decision Tree Classifier** | **78.09%** | **81.54%** | **78.03%** | **79.75%** | **82.03%** | **87.12%** | **4.03s** |
+| **4** | **Linear Discriminant Analysis (LDA)** | **72.23%** | **84.27%** | **61.19%** | **70.90%** | **77.32%** | **83.28%** | **0.43s** |
+| **5** | **Support Vector Machine (LinearSVC)** | **72.13%** | **83.57%** | **61.71%** | **71.00%** | **77.34%** | **83.30%** | **5.74s** |
+| **6** | **Logistic Regression** | **71.69%** | **81.63%** | **62.95%** | **71.09%** | **77.40%** | **83.35%** | **1.20s** |
+| **7** | **Gaussian Naive Bayes** | **69.45%** | **79.92%** | **59.74%** | **68.37%** | **72.46%** | **79.27%** | **0.11s** |
 
 ### 3.2 Statistical Significance (McNemar Paired Test with Edwards' Continuity Correction)
 To evaluate whether XGBoost significantly outperforms Random Forest on paired order predictions, we compute McNemar's test with Edwards' continuity correction:
