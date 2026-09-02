@@ -111,9 +111,10 @@ Raw Ingested Dataset (DataCo 180,519 Records)
        • Quantify top feature attribution shifts Δ (2015-16 vs 2017)
                        │
                        ▼
-     [Operational Cost-Benefit Decision Layer]
-       • Intervention policy at p ≥ 0.30 prevents 82.66% of late orders
-       • Achieves 47.86% net operational cost reduction (+$624,080.00)
+      [Operational Cost-Benefit Decision Layer]
+        • Analytical Bayes optimal threshold p* = 0.353; Grid peak at p ≥ 0.40
+        • Achieves 40.28% net cost reduction (+$502,882.50 savings)
+        • Risk-averse policy at p ≥ 0.30 mitigates 19,744 delays (+$490,867.50 savings)
 ```
 
 ---
@@ -222,7 +223,7 @@ Classification models often output uncalibrated probabilities that misrepresent 
 | **Platt Scaling (Sigmoid 5-fold CV)** | 0.0872 | [0.0856, 0.0890] | 3.45% | [3.21%, 3.74%] | 11.42% | 0.0023 | $X_{\text{train}}$ 5-fold CV |
 | **Isotonic Regression (5-fold CV)** | 0.0868 | [0.0853, 0.0885] | **3.50%** | [3.24%, 3.77%] | **9.32%** | **0.0020** | $X_{\text{train}}$ 5-fold CV |
 
-> **Methodological Note**: On random holdout, Isotonic calibration bounds ECE to **3.50%** and MCE to **9.32%**. When transferred to unseen future periods (2017) and out-of-domain markets (Pacific Asia), calibration improves **both ECE and Brier score**.
+> **Methodological & Boundary Shift Note**: On random holdout, Isotonic calibration bounds ECE to **3.50%** and MCE to **9.32%**. While monotonic calibration preserves rank discrimination, applying a fixed operational cut-off ($\theta = 0.50$) to calibrated probabilities effectively shifts the decision boundary in raw probability space: $s^*(x) = m^{-1}(0.50) \approx 0.58$. Furthermore, because `CalibratedClassifierCV` averages five fold-level isotonic models, the resulting ensemble smoothing alters hard-classification metrics (increasing precision to 83.37% on the 2017 temporal horizon). Across both future temporal periods and out-of-domain markets, calibration consistently improves **both ECE and Brier score**.
 
 ---
 
@@ -283,10 +284,15 @@ Calibrated probabilities are mapped into predefined operational risk tiers:
 - **High Risk ($0.50 \le p < 0.80$)**: Priority warehouse dispatch allocation.
 - **Critical Risk ($p \ge 0.80$)**: Expedited carrier rerouting intervention.
 
-### Cost-Benefit Intervention Model
-- **Parameters**: Late Delivery SLA Penalty ($C_{\text{late}} = \$50.00$), Expedited Intervention Cost ($C_{\text{intervene}} = \$15.00$), Intervention Effectiveness ($\eta = 85\%$).
-- **Unmitigated Baseline Penalty Cost**: 26,078 late orders $\times \$50.00 = \mathbf{\$1,303,900.00}$ (on holdout test set).
-- **Optimal Intervention Policy ($p^* \ge 0.30$)**: Intervenes on 30,248 orders, prevents **21,556 late deliveries (82.66% of all delays)**, and achieves a **47.86% net operational cost reduction** ($+\$624,080.00$ net savings).
+### Cost-Benefit Intervention Model & Threshold Economics
+- **Cost Parameters**: Late Delivery SLA Penalty ($C_{\text{late}} = \$50.00$), Expedited Intervention Cost ($C_{\text{intervene}} = \$15.00$), Imperfect Mitigation Effectiveness ($\eta = 85\%$ applied strictly to true positives $y_i = 1 \land \hat{p}_i \ge \theta$).
+- **Baseline Unmitigated Penalty Cost**: 24,967 late orders $\times \$50.00 = \mathbf{\$1,248,350.00}$ (on holdout test set).
+- **Analytical Bayes Optimal Threshold**:
+  $$p^* = \frac{C_{\text{intervene}}}{C_{\text{late}} \cdot \eta} = \frac{\$15.00}{\$50.00 \times 0.85} \approx \mathbf{0.353}$$
+- **Empirical Policy Performance**:
+  - **Grid Peak Policy ($p \ge 0.40$)**: Intervenes on 27,241 orders, prevents **18,229 late deliveries**, and achieves a **40.28% peak net operational cost reduction** ($+\$502,882.50$ net savings).
+  - **Risk-Averse Policy ($p \ge 0.30$)**: Intervenes on 33,091 orders, prevents **19,744 late deliveries**, and achieves a **39.32% net operational cost reduction** ($+\$490,867.50$ net savings). In comparison, $p \ge 0.50$ achieves lower savings ($+\$487,452.50$, 39.05%).
+  - Complete policy evaluations across $p \in [0.10, 0.80]$ are available in `results/tables/decision_cost_simulation.csv`.
 
 ---
 
