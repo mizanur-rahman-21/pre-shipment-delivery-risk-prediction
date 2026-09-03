@@ -63,9 +63,10 @@ We benchmark 7 core models on a 70/30 stratified holdout split (**47,415 test sa
 | 🥉 **3** | **Decision Tree Classifier** | **78.09%** | **81.54%** | **78.03%** | **79.75%** | **82.03%** | **87.12%** | **4.03s** |
 
 ### McNemar Paired Test for Statistical Significance
-- **McNemar $\chi^2$ Statistic**: **4443.69**
+- **McNemar $\chi^2$ Statistic**: **2457.39** (with Edwards' continuity correction)
+- **Contingency Table**: $b = 4,644$ (XGBoost correct / RF incorrect), $c = 939$ (RF correct / XGBoost incorrect).
 - **$p$-Value**: **$0.0000\text{e}+00 \quad (p < 0.001)$**
-- **Accuracy Difference**: **$+11.10\%$** ($95\%\text{ CI}: [10.74\%, 11.46\%]$).
+- **Accuracy Difference**: **$+7.81\%$** ($95\%\text{ CI}: [7.51\%, 8.11\%]$).
 
 ---
 

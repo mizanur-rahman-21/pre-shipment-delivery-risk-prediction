@@ -183,6 +183,6 @@ Even if intervention success drops to 38.11%, the pre-shipment expedite policy b
 
 ## 🎓 9. Conclusion
 
-1. **Academic Rigor**: Uniform scoping at order checkout, 5-fold CV out-of-fold target encoding, and McNemar test ($\chi^2 = 4443.69, p < 0.001$) establish benchmark validity without predictive leakage.
+1. **Academic Rigor**: Uniform scoping at order checkout, 5-fold CV out-of-fold target encoding, and McNemar test ($\chi^2 = 2457.39, p < 0.001$ with Edwards' continuity correction) establish benchmark validity without predictive leakage.
 2. **Probability Reliability**: Isotonic calibration transfers out-of-time to future test sets ($ECE = 1.25\%$) and out-of-domain geographic markets ($ECE = 7.20\%$).
 3. **Decision Support Utility**: Cost-benefit simulation demonstrates that probability-guided pre-shipment intervention delivers **40.28% peak cost reduction** ($+\$502,882.50$ net savings) in supply chain operations.
