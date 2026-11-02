@@ -31,7 +31,7 @@ We build a **Leakage-Controlled Pre-Shipment Predictive Framework**.
 - **Goal**: Predict whether an order will experience late delivery using **only information available at checkout**.
 - **Key Models**: 7 Core ML Classifiers, featuring an optimized **XGBoost Classifier**.
 - **Peak Holdout Accuracy**: **90.11%** (Precision: **93.70%**, Recall: **88.02%**, ROC-AUC: **96.13%**, PR-AUC: **96.88%**).
-- **Decision Utility**: Operational intervention simulation achieves a **47.86% cost reduction** (+$624,080.00 net savings).
+- **Decision Utility**: Order-value-based economic simulation ($L_i = \alpha V_i$) with heterogeneous break-even thresholds and systematic sensitivity analysis across loss rates ($\alpha \in \{0.03, 0.05, 0.10\}$).
 
 ---
 
@@ -124,16 +124,22 @@ Trained on **Europe + LATAM** (89,172 samples) and evaluated on **Pacific Asia**
 
 ---
 
-## 8. Decision & Cost-Benefit Simulation (Operational Business Value)
+## 8. Order-Value-Based Economic Decision-Cost Simulation
 
-We model intervention economics:
-- **Cost Parameters**: Late SLA Penalty ($C_{\text{late}} = \$50.00$), Expedited Intervention Cost ($C_{\text{intervene}} = \$15.00$), Intervention Effectiveness ($\eta = 85\%$).
-- **Optimal Analytical Threshold**: $p^* = C_{\text{intervene}} / (C_{\text{late}} \times \eta) = 15 / (50 \times 0.85) = \mathbf{0.353}$.
-
-| Threshold Policy | Intervened Orders | Intervention Rate | Prevented Delays | Total Policy Cost ($) | Net Cost Savings ($) | Cost Reduction (%) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Unmitigated Baseline** | 0 | 0.00% | 0 | $1,303,900.00 | $0.00 | 0.00% |
-| **$p \ge 0.30$ (Optimal)** | **30,248** | **63.80%** | **21,556** | **$679,820.00** | **+$624,080.00** | **47.86%** |
+We model intervention economics with heterogeneous loss exposure ($L_k = \alpha V_{\text{ord}, k}$):
+- **Realized Historical Counterfactual Cost Formulation**:
+  $$C_k = I_k \bigl[ C_I + Y_k (1 - \eta) L_k \bigr] + (1 - I_k) Y_k L_k$$
+- **Observation-Specific Bayes Decision Rule**:
+  $$\boxed{p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}} \equiv p_{\text{BE}, k}}$$
+  $$I_k = \mathbf{1}\left[ p_{\text{ord}, k} > p_{\text{BE}, k} \right]$$
+- **Operational Granularity & Performance**:
+  - **Order-Level (`Order Id`, $N = 27{,}409$ unique orders)**: Evaluates $C_I = \$15.00$ per unique order. The Bayes decision rule flags 3,840 orders (14.01%), yielding **+12.80% simulated cost reduction (+\$33,085.28 savings)** over the \$258,522.01 baseline.
+  - **Line-Item Level**: Yields **+0.90% simulated cost reduction (+\$2,318.60)** across 1,073 intervened lines.
+  - **Static Threshold Evaluation**: Under the specified economic assumptions, the evaluated uniform fixed-threshold policies ($\tau \in [0.05, 0.95]$) were economically inferior to the observation-specific value-aware decision rule, generating negative returns (from $-69.26\%$ to $-0.89\%$).
+- **Sensitivity Matrix**:
+  - $\alpha \in \{0.03, 0.05, 0.10\}$: Simulated cost reductions are **+3.55%**, **+12.80%**, and **+35.46%**.
+  - $C_I \in \{\$10, \$15, \$20\}$: Simulated cost reductions are **+26.06%**, **+12.80%**, and **+7.07%**.
+  - Complete tables: `results/tables/decision_cost_simulation.csv`, `results/tables/decision_policy_comparison.csv`, `results/tables/sensitivity_*.csv`.
 
 ---
 

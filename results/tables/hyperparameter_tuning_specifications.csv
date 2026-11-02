@@ -1,0 +1,8 @@
+Rank,Model Name,Accuracy,F1 Score,ROC-AUC,Tuned Parameters
+🥇 1,XGBoost Classifier (Tuned),90.11%,90.77%,96.13%,"n_estimators=900, max_depth=16, lr=0.025, subsample=0.88, colsample=0.88, gamma=0.05"
+🥈 2,Random Forest Classifier (Tuned),79.01%,78.95%,91.06%,"n_estimators=500, max_depth=40, min_samples_split=2, min_samples_leaf=1, max_features=sqrt"
+🥉 3,Decision Tree Classifier (Tuned),78.09%,79.75%,82.03%,"max_depth=25, min_samples_split=3, min_samples_leaf=1, criterion=gini"
+4,Linear Discriminant Analysis (Tuned),72.23%,70.90%,77.32%,"solver=lsqr, shrinkage=auto (Ledoit-Wolf covariance regularizer)"
+5,Support Vector Machine (Tuned),72.13%,71.00%,77.34%,"C=5.0, loss=squared_hinge, penalty=l2, max_iter=4000"
+6,Logistic Regression (Tuned),71.69%,71.09%,77.40%,"C=10.0, penalty=l2, solver=lbfgs, max_iter=4000"
+7,Gaussian Naive Bayes (Tuned),69.45%,68.37%,72.46%,var_smoothing=0.01 (optimized Laplace/Gaussian variance floor)

@@ -26,7 +26,7 @@ from src.feature_engineering import engineer_features, apply_bayesian_target_enc
 from src.models import build_model_dictionary
 from src.evaluation import evaluate_models_benchmark, run_mcnemar_statistical_test
 from src.calibration import fit_and_evaluate_calibration_leakfree, assign_delivery_risk_scores
-from src.decision_simulation import run_decision_cost_simulation
+from src.decision_simulation import run_order_value_cost_simulation
 from src.explainability import run_treeshap_analysis
 from src.robustness import run_temporal_calibrated_experiment, run_geographic_robustness_experiment
 from src.visualization import generate_all_19_figures
@@ -88,17 +88,25 @@ def main():
     print("      Top SHAP Feature Importance Temporal Drift (2015-2016 vs 2017):")
     print(drift_df.to_string())
 
-    # 7. Operational Risk Stratification & Cost Simulation
-    print("\n[POINT 12] Generating Operational Delivery Risk Scores & Cost Simulation...")
+    # 7. Operational Risk Stratification & Order-Value-Based Cost Simulation
+    print("\n[POINT 12] Generating Operational Delivery Risk Scores & Order-Value-Based Cost Simulation...")
     cal_probs = prob_dict['Isotonic Regression'][0]
     risk_df = assign_delivery_risk_scores(cal_probs)
     risk_summary = risk_df['Risk Category'].value_counts(normalize=True).map(lambda x: f"{x*100:.2f}%")
     print("      Operational Risk Category Distribution:")
     print(risk_summary)
 
-    sim_df, _ = run_decision_cost_simulation(y_test, cal_probs)
+    # Retrieve Order Item Total for test set from pre-shipment dataset
+    order_values_test = df_pre['Order Item Total'].iloc[split_idx:].values
+    sim_df, sim_summary = run_order_value_cost_simulation(
+        y_test, cal_probs, order_values_test,
+        alpha=0.05, cost_intervene=15.0, eta=0.85
+    )
     os.makedirs('results/tables', exist_ok=True)
     sim_df.to_csv('results/tables/decision_cost_simulation.csv', index=False)
+    print(f"      Baseline Economic Loss: ${sim_summary['baseline_cost']:,.2f}")
+    print(f"      Cost-Minimizing Threshold: τ* = {sim_summary['optimal_threshold']}")
+    print(f"      Net Savings: ${sim_summary['optimal_net_savings']:,.2f} ({sim_summary['optimal_cost_reduction_pct']:.2f}%)")
 
     # 8. TreeSHAP Explainability
     print("\n[POINT 11] Running Complete TreeSHAP Explainability Analysis...")

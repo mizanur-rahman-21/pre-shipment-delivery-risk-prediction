@@ -49,13 +49,14 @@ To establish a scientifically rigorous, fully reproducible methodology for pre-s
 
 ## 2. Research Questions
 
-The empirical framework addresses five core research questions:
+The empirical framework addresses six core research questions:
 
 * **RQ1 (Pre-Shipment Predictability)**: *Can late-delivery risk be reliably predicted at order placement using exclusively pre-shipment information observable before warehouse dispatch begins?*
 * **RQ2 (Temporal Generalization)**: *How does predictive accuracy degrade when a model trained on historical order data (2015–2016) is deployed on unseen future operating periods (2017)?*
 * **RQ3 (Probability Reliability)**: *Does leak-free probability calibration (Platt Scaling and Isotonic Regression) improve predicted probability reliability across holdout, temporal, and out-of-domain test sets?*
 * **RQ4 (Geographic Robustness)**: *How robustly does a pre-shipment model generalize to geographically unseen trade markets (e.g., Pacific Asia) under Out-of-Domain (OOD) evaluation?*
 * **RQ5 (Attribution Drift)**: *Do feature attributions shift significantly between historical training windows and future operating periods, and how can TreeSHAP identify operational drift?*
+* **RQ6 (Order-Value-Aware Decision Economics)**: *Can calibrated delivery-risk probabilities be translated into an interpretable, order-value-aware intervention policy under explicitly stated economic loss and efficacy assumptions?*
 
 ---
 
@@ -65,7 +66,7 @@ The empirical framework addresses five core research questions:
 2. **Leak-Free Probability Calibration Protocol**: Fits Platt Scaling and Isotonic Regression strictly within training cross-validation folds, reporting Expected Calibration Error (ECE), Maximum Calibration Error (MCE), 95% Bootstrap CIs, and Brier Score Decomposition.
 3. **Connected Temporal & Geographic Out-of-Domain Validation**: Demonstrates calibration transferability across chronological time shifts (2015–2016 Train $\rightarrow$ 2017 Future Test) and Leave-One-Market-Out (LOMO) cross-validation across 5 global trade zones.
 4. **Explainable Attribution Drift Analysis**: Uses TreeSHAP explainer values to quantify feature importance shifts between historical and future deployment periods without making invalid causal claims.
-5. **Operational Decision & Cost Simulation**: Translates calibrated probabilities into actionable operational risk categories (Low, Medium, High, Critical) and evaluates a cost-benefit intervention model ($C_{\text{late}} = \$50.00$ vs $C_{\text{intervene}} = \$15.00$).
+5. **Order-Value-Based Economic Decision Framework**: Connects calibrated risk probabilities to an order-value-dependent loss exposure model ($L_i = \alpha V_i$, baseline $\alpha = 0.05$), evaluates order-specific break-even thresholds, and conducts systematic sensitivity analysis across loss rates ($\alpha \in \{0.03, 0.05, 0.10\}$), intervention costs, and efficacy scenarios.
 
 ---
 
@@ -111,10 +112,10 @@ Raw Ingested Dataset (DataCo 180,519 Records)
        • Quantify top feature attribution shifts Δ (2015-16 vs 2017)
                        │
                        ▼
-      [Operational Cost-Benefit Decision Layer]
-        • Analytical Bayes optimal threshold p* = 0.353; Grid peak at p ≥ 0.40
-        • Achieves 40.28% net cost reduction (+$502,882.50 savings)
-        • Risk-averse policy at p ≥ 0.30 mitigates 19,744 delays (+$490,867.50 savings)
+       [Order-Value-Based Economic Decision Layer]
+         • Heterogeneous loss exposure L_i = α·V_i (benchmark α = 0.05)
+         • Order-value-dependent break-even threshold p_BE = (1 - η) + C_I / (α·V_i)
+         • Sensitivity analysis across α ∈ {0.03, 0.05, 0.10}, C_I, and η
 ```
 
 ---
@@ -299,22 +300,28 @@ Calibrated probabilities are mapped into predefined operational risk tiers:
 - **High Risk ($0.50 \le p < 0.80$)**: Priority warehouse dispatch allocation.
 - **Critical Risk ($p \ge 0.80$)**: Expedited carrier rerouting intervention.
 
-### Cost-Benefit Intervention Model & Threshold Economics
-- **Cost Parameters**: Late Delivery SLA Penalty ($C_{\text{late}} = \$50.00$), Expedited Intervention Cost ($C_{\text{intervene}} = \$15.00$), Imperfect Mitigation Effectiveness ($\eta = 85\%$ applied strictly to true positives $y_i = 1 \land \hat{p}_i \ge \theta$).
-- **Baseline Unmitigated Penalty Cost**: 24,967 late orders $\times \$50.00 = \mathbf{\$1,248,350.00}$ (on holdout test set).
-- **Analytical Bayes Optimal Threshold**:
-  $$p^* = \frac{C_{\text{intervene}}}{C_{\text{late}} \cdot \eta} = \frac{\$15.00}{\$50.00 \times 0.85} \approx \mathbf{0.353}$$
-- **Empirical Policy Performance**:
-  - **Grid Peak Policy ($p \ge 0.40$)**: Intervenes on 27,241 orders, prevents **18,229 late deliveries**, and achieves a **40.28% peak net operational cost reduction** ($+\$502,882.50$ net savings).
-  - **Risk-Averse Policy ($p \ge 0.30$)**: Intervenes on 33,091 orders, prevents **19,744 late deliveries**, and achieves a **39.32% net operational cost reduction** ($+\$490,867.50$ net savings). In comparison, $p \ge 0.50$ achieves lower savings ($+\$487,452.50$, 39.05%).
-  - Complete policy evaluations across $p \in [0.10, 0.80]$ are available in `results/tables/decision_cost_simulation.csv`.
+### Order-Value-Based Economic Decision Framework & Threshold Economics
+- **Realized Historical Counterfactual Cost Formulation**:
+  $$C_k = I_k \bigl[ C_I + Y_k (1 - \eta) L_k \bigr] + (1 - I_k) Y_k L_k$$
+  where $L_k = \alpha V_{\text{ord}, k}$ (`Order Item Total` order sum). If an order is delivered on-time ($Y_k = 0$), intervention incurs only the expediting fee $C_I = \$15.00$ with zero residual late loss.
+- **Observation-Specific Bayes Optimal Decision Rule**:
+  $$\mathbb{E}[C \mid I_k = 1] < \mathbb{E}[C \mid I_k = 0] \iff \boxed{p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}} \equiv p_{\text{BE}, k}}$$
+  $$I_k = \mathbf{1}\left[ p_{\text{ord}, k} > p_{\text{BE}, k} \right]$$
+- **Operational Granularity & Performance**:
+  - **Order-Level Operational Unit (`Order Id`, $N = 27{,}409$ unique orders)**: When intervention is evaluated per unique order ($C_I = \$15.00$ once per multi-item order), the Bayes decision rule intervenes on 3,840 orders (14.01%), yielding a **12.80% reduction in simulated economic cost (+\$33,085.28 savings)** over the \$258,522.01 baseline.
+  - **Line-Item Level Execution ($N = 47{,}415$ items)**: Yields **+0.90% simulated cost reduction (+\$2,318.60)** across 1,073 intervened line items.
+  - **Evaluation of Static Uniform Thresholds**: Under the specified economic assumptions, the evaluated uniform fixed-threshold policies ($\tau \in [0.05, 0.95]$) were economically inferior to the observation-specific value-aware decision rule, producing negative simulated returns (from $-69.26\%$ to $-0.89\%$) due to forced interventions on low-value orders.
+- **Sensitivity Matrix**:
+  - Across $\alpha \in \{0.03, 0.05, 0.10\}$: Simulated cost reductions are **+3.55%**, **+12.80%**, and **+35.46%**.
+  - Across $C_I \in \{\$10, \$15, \$20\}$: Simulated cost reductions are **+26.06%**, **+12.80%**, and **+7.07%**.
+  - Complete tables are saved in `results/tables/decision_cost_simulation.csv` and `results/tables/sensitivity_*.csv`.
 
 ---
 
 ## 15. Repository Structure
 
 ```text
-supply-chain-delivery-risk/
+pre-shipment-delivery-risk-prediction/
 ├── README.md                           # Master academic repository overview
 ├── RESEARCH_GUIDE.md                   # Comprehensive technical reference guide
 ├── LICENSE                             # MIT Open-Source License
@@ -328,36 +335,52 @@ supply-chain-delivery-risk/
 │   ├── model.yaml                      # Model hyperparameter settings
 │   └── paths.yaml                      # Data & output paths
 ├── data/                               # Data storage tiers
+│   ├── README.md                       # Dataset documentation & acquisition guide
 │   ├── raw/                            # Dataset_.csv (unmodified raw data)
 │   └── processed/                      # Pre-shipment scoped clean dataset
 ├── src/                                # Modular Python package architecture
-│   └── delivery_risk/
-│       ├── data/                       # Ingestion & preprocessing modules
-│       ├── features/                   # Pre-shipment scoping & target encoding
-│       ├── models/                     # Core classifiers & XGBoost tuning
-│       ├── evaluation/                 # Metrics, McNemar test & calibration
-│       ├── explainability/             # TreeSHAP & attribution shift analysis
-│       ├── visualization/              # Publication figure generator
-│       └── utils/                      # Reproducibility & I/O helpers
+│   ├── calibration.py                  # Leak-free probability calibration & reliability
+│   ├── data_loader.py                  # Ingestion & raw data cleaning
+│   ├── data_preprocessing.py           # Preprocessing pipeline
+│   ├── decision_simulation.py          # Cost-sensitive Bayes decision rules & simulation
+│   ├── evaluation.py                   # Benchmark metrics & McNemar paired test
+│   ├── experiments.py                  # Core experiment runners
+│   ├── explainability.py               # TreeSHAP attribution & temporal drift
+│   ├── feature_audit.py                # Pre-shipment scoping & feature audit
+│   ├── feature_engineering.py          # Target encoding & transformations
+│   ├── models.py                       # 7 baseline classifiers & tuning
+│   ├── robustness.py                   # Temporal & geographic OOD robustness
+│   └── visualization.py                # Publication figure generators
+├── notebooks/                          # 8 Self-contained research notebooks
+│   ├── 01_data_audit_and_scoping.ipynb
+│   ├── 02_exploratory_data_analysis.ipynb
+│   ├── 03_leakage_free_preprocessing.ipynb
+│   ├── 04_temporal_and_ablation_experiments.ipynb
+│   ├── 05_model_calibration_and_risk_scoring.ipynb
+│   ├── 06_shap_explainability_analysis.ipynb
+│   ├── 07_robustness_and_geographic_generalization.ipynb
+│   └── 08_order_value_economic_decision_simulation.ipynb
 ├── scripts/                            # Standalone execution entrypoints
 │   ├── run_full_pipeline.py            # Master pipeline execution script
+│   ├── compute_final_corrected_economics.py  # Order-level economics & sensitivity
+│   ├── run_audit_and_reliability.py    # Order-level calibration & audit
 │   └── generate_figures.py             # Publication figure organization script
 ├── results/                            # Experimental metrics & tables
-│   ├── metrics/                        # 11 experiment metric CSV files
-│   ├── tables/                         # Master summary table & cost simulation
-│   └── statistical_tests/              # McNemar test output CSV
-├── figures/                            # Publication visual figures
+│   ├── metrics/                        # Experiment metric CSV files (E1-E7)
+│   └── tables/                         # Master summary tables & cost simulation
+├── figures/                            # Publication visual figures (300 DPI)
 │   ├── exploratory/                    # Figures 01-07 (Target & EDA distributions)
 │   ├── model_performance/              # Figures 08-11 (Benchmark, ROC/PR curves)
-│   ├── calibration/                    # Figures 12-13 (Reliability diagrams)
+│   ├── calibration/                    # Figures 12-13, 25 (Reliability diagrams)
 │   ├── temporal/                       # Figures 17 & 20 (Temporal split & SHAP drift)
 │   ├── geographic/                     # Figure 18 (Geographic OOD performance)
-│   └── explainability/                 # Figures 14-16 & 19 (SHAP & Risk tiers)
+│   ├── explainability/                 # Figures 14-16 & 19 (SHAP & Risk tiers)
+│   └── decision_simulation/            # Figures 21-25 (Cost curves, sensitivity, value dist)
 ├── docs/                               # Research documentation
 │   ├── feature_availability.md         # Exhaustive feature availability audit
 │   ├── experiment_traceability.md      # Paper Section → Code → Result CSV → Figure map
 │   └── reproducibility.md              # Reproduction guide & environment setup
-└── reports/                            # Publication drafts
+└── reports/                            # Publication manuscripts
     └── final_research_paper.md         # Full academic research paper
 ```
 
@@ -368,8 +391,8 @@ supply-chain-delivery-risk/
 ### Environment Setup
 ```bash
 # Clone repository
-git clone https://github.com/mizanur-rahman-21/Supply_Chain_Risk_Detection_Using-_Machine_Learning.git
-cd Supply_Chain_Research
+git clone https://github.com/mizanur-rahman-21/pre-shipment-delivery-risk-prediction.git
+cd pre-shipment-delivery-risk-prediction
 
 # Install dependencies via Pip
 pip install -r requirements.txt
@@ -377,7 +400,7 @@ pip install -r requirements.txt
 
 ### Reproduce Full Research Pipeline
 To run all experiments, generate CSV metric tables, and export all visual figures:
-```powershell
+```bash
 python main.py
 ```
 
@@ -391,12 +414,12 @@ Every table and figure in the paper maps directly to an experimental execution s
 
 | Paper Section | Experiment ID | Source Script / Module | Primary Result CSV File | Key Figure(s) |
 | :--- | :---: | :--- | :--- | :--- |
-| **Section 3.1: Benchmark** | **E1** | `src/evaluation.py` | `results/metrics/E1_baseline_benchmark.csv` | `figures/model_performance/08_model_performance_comparison.png` |
+| **Section 3: Benchmark** | **E1** | `src/evaluation.py` | `results/metrics/E1_baseline_benchmark.csv` | `figures/model_performance/08_model_performance_comparison.png` |
 | **Section 4: Calibration** | **E3** | `src/calibration.py` | `results/metrics/E3_calibration_metrics.csv` | `figures/calibration/12_reliability_diagram.png` |
 | **Section 5: Temporal** | **E2** | `src/robustness.py` | `results/metrics/E2_temporal_robustness.csv` | `figures/temporal/17_temporal_performance_comparison.png` |
-| **Section 6: TreeSHAP** | **Priority 3** | `src/explainability.py` | `results/metrics/shap_temporal_drift_analysis.csv` | `figures/explainability/14_shap_summary_beeswarm.png` |
-| **Section 7: Geographic** | **E7** | `src/robustness.py` | `results/metrics/E7_geographic_robustness.csv` | `figures/geographic/18_geographic_generalization_comparison.png` |
-| **Section 8: Decision Layer**| **Decision** | `src/decision_simulation.py`| `results/tables/decision_cost_simulation.csv` | `figures/explainability/19_risk_category_distribution.png` |
+| **Section 6: Geographic** | **E7** | `src/robustness.py` | `results/metrics/E7_geographic_robustness.csv` | `figures/geographic/18_geographic_generalization_comparison.png` |
+| **Section 7: TreeSHAP** | **Priority 3** | `src/explainability.py` | `results/metrics/shap_temporal_drift_analysis.csv` | `figures/explainability/14_shap_summary_beeswarm.png` |
+| **Section 8: Decision Economics**| **Decision** | `src/decision_simulation.py`<br>`scripts/compute_final_corrected_economics.py` | `results/tables/decision_cost_simulation.csv`<br>`results/tables/sensitivity_*.csv` | `figures/decision_simulation/21_decision_cost_curve.png`<br>`figures/decision_simulation/25_order_level_reliability_diagram.png` |
 
 *For complete mapping details, see [docs/experiment_traceability.md](docs/experiment_traceability.md).*
 

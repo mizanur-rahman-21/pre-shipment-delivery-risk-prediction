@@ -10,7 +10,7 @@
 - **Statistical Significance (McNemar)**: **$\chi^2 = 2457.39, \quad p < 0.001$** (+7.81% accuracy gain over Random Forest baseline, $95\%\text{ CI}: [7.51\%, 8.11\%]$ with Edwards' continuity correction).
 - **Probability Calibration & Future Transfer (E2)**: Calibration on historical data reduces 2017 Future Test ECE from **10.45% down to 1.25%** and Brier Score from **0.2031 down to 0.1859**.
 - **Geographic Out-of-Domain Calibration (E7)**: Calibrated model on Pacific Asia drops ECE from **11.65% down to 7.20%** and Brier Score from **0.2017 down to 0.1902**.
-- **Decision & Cost Savings Simulation**: Operational intervention policy at threshold $p \ge 0.40$ (analytical optimum $p^* = 0.353$) achieves a **40.28% peak net cost reduction** ($+\$502,882.50$ savings), while a risk-averse threshold $p \ge 0.30$ prevents 19,744 delays ($39.32\%$ savings).
+- **Order-Value-Based Economic Decision Framework**: Under baseline parameters ($\alpha = 0.05$, $C_I = \$15$, $\eta = 0.85$), the observation-specific Bayes decision rule ($p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}}$) yielded a **12.80% reduction in simulated economic cost** (+\$33,085.28 savings) at the order-level operational unit (and +0.90% at the line-item level). Under the specified economic assumptions, the evaluated uniform fixed-threshold policies were economically inferior to the observation-specific value-aware decision rule.
 
 ---
 
@@ -22,7 +22,7 @@ This study formulates a **leakage-controlled, pre-shipment predictive framework*
 1. **Strict Pre-Shipment Scoping & Leakage Control**: Uniformly defining the prediction point at order checkout and evaluating feature availability with 5-fold stratified out-of-fold target encoding.
 2. **Leak-Free Probability Calibration & Reliability Diagnostics**: Fitting Platt Scaling and Isotonic Regression strictly on training cross-validation folds (zero test leakage), reporting 95% Bootstrap Confidence Intervals, Brier score decomposition, calibration slope/intercept, and reliability diagrams.
 3. **Connected Temporal & Geographic Out-of-Domain Validation**: Demonstrating calibration resilience across temporal shifts (2015–2016 Train $\rightarrow$ 2017 Future Test) and geographic market shifts (Europe+LATAM $\rightarrow$ Pacific Asia out-of-domain and Leave-One-Market-Out CV).
-4. **Decision & Cost-Benefit Simulation**: Translating risk probabilities into an operational intervention decision policy, demonstrating substantial financial cost savings ($).
+4. **Order-Value-Based Economic Decision Framework**: Connecting calibrated risk probabilities to an order-value-aware economic loss model ($L_i = \alpha V_i$) with systematic sensitivity analysis across loss rate, intervention cost, and intervention effectiveness parameters.
 
 ---
 
@@ -133,56 +133,188 @@ Top feature model attributions between **Historical 2015–2016 orders** and **F
 | `Order City` | 0.1508 | 0.0662 | **0.0846** | Attribution shift consistent with urban delivery density shifts. |
 | `Order State` | 0.1243 | 0.0513 | **0.0730** | Attribution shift consistent with regional routing policy changes. |
 
+## 💰 8. Order-Value-Based Economic Decision-Cost Simulation
+
+### 8.1 Order-Value-Based Economic Loss Exposure
+
+The economic consequences of delivery delays are fundamentally heterogeneous: a late \$8 commodity accessory and a late \$1,740 enterprise equipment order carry drastically different financial exposures. To reflect this commercial reality, we replace the legacy uniform-penalty formulation with an order-value-dependent late-delivery economic loss proxy:
+
+$$L = \alpha \cdot V$$
+
+where $V$ represents monetary transaction value and $\alpha$ is the assumed proportion of transaction value exposed to late-delivery economic loss.
+
+We establish $\alpha = 0.05$ as the baseline benchmark scenario, grounded in empirical supply-chain literature (Fisher et al., 2006, *What Is It Worth to You? Communicating the Dollar Value of Delivering on Time*), which reports approximately 5.1% lost sales associated with a five-day delivery delay. This parameter is adopted as a **literature-supported benchmark proxy for scenario simulation**, rather than a universal contractual penalty.
+
+**Order-Value Descriptive Statistics** (E1 Holdout Test Set, $N = 47{,}415$ line items; $N_{\text{orders}} = 27{,}409$ unique orders):
+
+| Statistic | Line-Item Value ($V_i$) | Item Loss Exposure ($0.05 V_i$) | Order Total Value ($V_{\text{ord}}$) | Order Loss Exposure ($0.05 V_{\text{ord}}$) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Mean** | \$204.99 | \$10.25 | \$354.91 | \$17.75 |
+| **Median** | \$178.17 | \$8.91 | \$279.98 | \$14.00 |
+| **Std Dev** | \$126.15 | \$6.31 | \$268.42 | \$13.42 |
+| **Min** | \$8.47 | \$0.42 | \$8.47 | \$0.42 |
+| **Max** | \$1,739.99 | \$87.00 | \$2,149.95 | \$107.50 |
+| **P25** | \$107.89 | \$5.39 | \$159.98 | \$8.00 |
+| **P75** | \$319.98 | \$16.00 | \$479.96 | \$24.00 |
+| **P90** | \$377.98 | \$18.90 | \$719.88 | \$35.99 |
+| **P95** | \$391.98 | \$19.60 | \$899.91 | \$45.00 |
+
+### 8.2 Observation-Level Cost Formulation & Conceptual Separation
+
+In general form, delivery delay loss is modeled as proportional to monetary transaction value:
+$$L_i = \alpha V_i$$
+where $V_i$ represents transaction value and $\alpha$ represents the loss exposure proportion. Under intervention cost $C_I$ and mitigation efficacy $\eta$, the expected cost of intervening versus not intervening is:
+$$\mathbb{E}[C \mid I_i = 1] = C_I + p_i (1 - \eta) L_i \quad \text{versus} \quad \mathbb{E}[C \mid I_i = 0] = p_i L_i$$
+yielding the generic Bayes break-even threshold:
+$$p_i > \frac{C_I}{\eta \alpha V_i} \equiv p_{\text{BE}, i}$$
+
+For the primary economic evaluation, the generic observation index $i$ is instantiated at the order level $k$, because intervention is evaluated at the `Order Id` operational unit. The framework maintains a strict conceptual separation across three methodological layers:
+
+#### 1. Risk Prediction
+For each order $k$, the predictive model outputs a delivery risk probability:
+$$p_{\text{ord}, k} = P(Y_k = 1 \mid X_k)$$
+where $Y_k \in \{0, 1\}$ is the true binary late-delivery indicator (1 = late, 0 = on-time).
+
+#### 2. Cost-Sensitive Decision Rule
+Under assumed intervention cost $C_I = \$15.00$ and assumed mitigation effectiveness $\eta = 0.85$, the expected cost comparison for order $k$ with order loss exposure $L_k = \alpha V_{\text{ord}, k}$ yields the observation-specific Bayes decision rule under the assumed cost structure:
+$$C_I < p_{\text{ord}, k} \eta L_k \iff \boxed{p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}} \equiv p_{\text{BE}, k}}$$
+$$\boxed{I_k = \mathbf{1}\left[ p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}} \right]}$$
+
+Because $p_{\text{BE}, k}$ scales inversely with order total value $V_{\text{ord}, k}$, higher-value orders justify intervention at lower predicted risk, whereas orders with value below $V_{\text{min}} = \frac{C_I}{\eta \alpha} = \$352.94$ have $p_{\text{BE}, k} > 1.0$ and are never intervened.
+
+#### 3. Realized Historical Counterfactual Evaluation
+Given actual binary outcome $Y_k$ and intervention decision $I_k$, the realized operational cost is:
+$$\boxed{C_k = I_k \bigl[ C_I + Y_k (1 - \eta) L_k \bigr] + (1 - I_k) Y_k L_k}$$
+
+- **On-Time Orders ($Y_k = 0$)**: If intervened ($I_k = 1$), incurs only $C_I = \$15.00$ with zero residual late loss. If not intervened ($I_k = 0$), cost is \$0.
+- **Late Orders ($Y_k = 1$)**: If intervened ($I_k = 1$), incurs $C_I + (1 - \eta) L_k = \$15.00 + 0.15 L_k$. If not intervened ($I_k = 0$), incurs full unmitigated loss $L_k$.
+
+The benchmark no-intervention baseline cost is:
+$$C_{\text{baseline}} = \sum_k Y_k L_k = \mathbf{\$258{,}522.01}$$
+
+### 8.3 Operational Granularity: Line-Item vs. Order-Level Aggregation
+
+In commercial supply-chain operations, preventive expediting is managed at the **order-level operational unit** (`Order Id`). In the evaluation data, all line items within an `Order Id` exhibited the same observed late-delivery target ($Y_{\text{ord}} \in \{0, 1\}$). The order-level probability is formulated as the arithmetic mean of the calibrated line-item probabilities:
+
+$$p_{\text{ord}, k} = \frac{1}{n_k} \sum_{i \in k} p_i$$
+
+The aggregated order-level probabilities achieved a Brier score of 0.1336, an Expected Calibration Error (ECE) of 7.13%, and a Maximum Calibration Error (MCE) of 18.00% across 10 uniform probability bins on the held-out order-level evaluation set ($N = 27{,}409$ unique orders), providing empirical evidence that the aggregation produces a usable probability signal without asserting that order-level probabilities are perfectly calibrated (Reliability Diagram presented in Figure 25). The total order value aggregates as $V_{\text{ord}, k} = \sum_{i \in k} V_i$.
+
+We compare economic policy outcomes across both granularities:
+
+| Granularity Mode | Operational Unit | Total Units | Late Units | Feasible Units ($p_{\text{BE}} \le 1.0$) | Intervened Units | Intervention Rate | Baseline Loss | Total Policy Cost | Net Economic Savings | Simulated Cost Reduction (%) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Line-Item Level** | Individual Item | 47,415 | 24,967 | 7,362 (15.5%) | 1,073 | 2.26% | \$258,522.01 | \$256,203.42 | +\$2,318.60 | **+0.90%** |
+| **Order-Level Unit** | Unique `Order Id` | 27,409 | 14,504 | 11,728 (42.8%) | 3,840 | 14.01% | \$258,522.01 | \$225,436.73 | +\$33,085.28 | **+12.80%** |
+
+#### Intervention Pool Audit Log (Order-Level Bayes Decision Rule):
+An empirical audit of the 3,840 orders flagged for intervention reveals the following operational breakdown:
+- **Intervened Orders**: 3,840 (14.01% intervention rate)
+- **Actually Late ($Y = 1$)**: 3,212 orders (83.65% true positive rate in the intervention pool)
+- **Actually On-Time ($Y = 0$)**: 628 orders (16.35% false alarms; incurring only the \$15 intervention fee with zero residual delay loss)
+- **Mean Predicted Risk ($p_{\text{ord}}$) Among Intervened**: 0.8064 (closely mirroring the observed 83.65% late rate)
+- **Mean Break-Even Threshold ($p_{\text{BE}}$) Among Intervened**: 0.5782
+- **Mean Order Value ($V_{\text{ord}}$) Among Intervened**: \$691.95 (substantially above the \$352.94 feasibility cutoff and the dataset mean of \$354.91)
+
+### 8.4 Break-Even Feasibility & Evaluation of Static Uniform Thresholds
+
+An order is economically eligible for intervention ($p_{\text{BE}} \le 1.0$) only if its monetary value satisfies:
+$$V_{\text{min}} = \frac{C_I}{\alpha \cdot \eta} = \frac{\$15.00}{0.05 \times 0.85} = \mathbf{\$352.94}$$
+
+To assess the utility of the value-aware decision rule, we evaluate it against static uniform probability thresholds applied across all orders:
+
+| Policy Configuration | Intervention Threshold | Flagged Orders | Intervention Rate (%) | Mean Predicted Risk ($\\bar{p}$) | Mean Break-Even ($\\bar{p}_{\\text{BE}}$) | Total Intervention Cost | Residual Late Loss | Total Policy Cost | Net Savings ($) | Cost Reduction (%) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **No-Intervention Baseline** | — | 0 | 0.00% | — | — | \.00 | \,522.01 | \,522.01 | \.00 | 0.00% |
+| **Uniform Static Policy** | $\\tau = 0.10$ | 26,586 | 97.00% | 0.5447 | 1.9289 | \,790.00 | \,778.30 | \,568.30 | $-\,046.29$ | $-69.26\%$ |
+| **Uniform Static Policy** | $\\tau = 0.30$ | 18,940 | 69.10% | 0.6738 | 1.8989 | \,100.00 | \,396.00 | \,496.00 | $-\,973.98$ | $-30.94\%$ |
+| **Uniform Static Policy** | $\\tau = 0.50$ | 13,560 | 49.47% | 0.7878 | 1.8792 | \,400.00 | \,656.29 | \,056.29 | $-\,534.27$ | $-11.81\%$ |
+| **Uniform Static Policy** | $\\tau = 0.70$ | 9,745 | 35.55% | 0.8600 | 1.8818 | \,175.00 | \,609.24 | \,784.24 | $-\,262.22$ | $-5.13\%$ |
+| **Uniform Static Policy** | $\\tau = 0.80$ | 6,641 | 24.23% | 0.9102 | 1.8468 | \,615.00 | \,643.17 | \,258.17 | $-\,736.16$ | $-1.83\%$ |
+| **Uniform Static Policy** | $\\tau = 0.95$ | 2,634 | 9.61% | 0.9999 | 1.8817 | \,510.00 | \,312.20 | \,822.20 | $-\,300.19$ | $-0.89\%$ |
+| **Value-Aware Bayes Rule** | $\\mathbf{p_{\\text{ord}} > p_{\\text{BE},\\text{ord}}}$ | **3,840** | **14.01%** | **0.8064** | **0.5782** | **\,600.00** | **\,836.73** | **\,436.73** | **+\,085.28** | **+12.80%** |
+
+> **Methodological Finding**: Under the specified economic assumptions, the evaluated uniform probability thresholds were economically inferior to the observation-specific value-aware decision rule. Static thresholds force interventions on lower-value orders ($V_{\text{ord}} < \$352.94$), generating negative returns regardless of classification accuracy. In contrast, the observation-specific Bayes decision rule under the assumed cost structure acts as a dynamic dual filter: it intervenes exclusively when predicted risk and order value jointly justify the expenditure, yielding a **12.80% reduction in simulated economic cost** under the baseline assumptions.
+
+### 8.5 Systematic Sensitivity Analysis
+
+We conduct full factorial sensitivity testing across economic loss rates ($\alpha \in \{0.03, 0.05, 0.10\}$), intervention fees ($C_I \in \{\$10, \$15, \$20\}$), and recovery efficacies ($\eta \in [0.70, 0.95]$) under the order-level Bayes decision rule:
+
+#### 8.5.1 One-Way Sensitivity: Loss Rate ($\alpha$)
+*(At baseline $C_I = \$15.00, \eta = 0.85$)*
+
+| Loss Rate Exposure ($\alpha$) | Baseline Loss ($) | Intervened Orders | Intervention Rate (%) | Policy Cost ($) | Net Savings ($) | Cost Reduction (%) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **0.03** (Conservative) | \$155,113.21 | 1,137 | 4.15% | \$149,607.50 | +\$5,505.71 | **+3.55%** |
+| **0.05** (Baseline Benchmark) | \$258,522.01 | 3,840 | 14.01% | \$225,436.73 | +\$33,085.28 | **+12.80%** |
+| **0.10** (Stress-Test Exposure) | \$517,044.03 | 10,786 | 39.35% | \$333,685.34 | +\$183,358.69 | **+35.46%** |
+
+#### 8.5.2 One-Way Sensitivity: Intervention Cost ($C_I$)
+*(At baseline $\alpha = 0.05, \eta = 0.85$)*
+
+| Intervention Cost ($C_I$) | Intervened Orders | Intervention Rate (%) | Policy Cost ($) | Net Savings ($) | Cost Reduction (%) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **\$10.00** (Favorable Logistics) | 8,011 | 29.23% | \$191,163.26 | +\$67,358.75 | **+26.06%** |
+| **\$15.00** (Baseline Benchmark) | 3,840 | 14.01% | \$225,436.73 | +\$33,085.28 | **+12.80%** |
+| **\$20.00** (Premium Expedite) | 1,967 | 7.18% | \$240,238.10 | +\$18,283.92 | **+7.07%** |
+
+#### 8.5.3 One-Way Sensitivity: Intervention Efficacy ($\eta$)
+*(At baseline $\alpha = 0.05, C_I = \$15.00$)*
+
+| Mitigation Efficacy ($\eta$) | Intervened Orders | Intervention Rate (%) | Policy Cost ($) | Net Savings ($) | Cost Reduction (%) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **$\eta = 0.70$** | 2,367 | 8.64% | \$239,762.00 | +\$18,760.01 | **+7.26%** |
+| **$\eta = 0.80$** | 3,374 | 12.31% | \$230,622.64 | +\$27,899.37 | **+10.79%** |
+| **$\eta = 0.85$ (Baseline)** | **3,840** | **14.01%** | **\$225,436.73** | **+\$33,085.28** | **+12.80%** |
+| **$\eta = 0.90$** | 4,457 | 16.26% | \$219,200.69 | +\$39,321.33 | **+15.21%** |
+| **$\eta = 0.95$** | 5,140 | 18.75% | \$212,214.35 | +\$46,307.67 | **+17.91%** |
+
+#### 8.5.4 Factorial Two-Way Matrix: $\alpha \times C_I$ (Cost Reduction % at $\eta = 0.85$)
+
+| Loss Exposure ($\alpha$) | $C_I = \$10.00$ | $C_I = \$15.00$ (Baseline) | $C_I = \$20.00$ |
+| :---: | :---: | :---: | :---: |
+| **$\alpha = 0.03$** (Conservative) | +10.63% (+$16,491.96) | +3.55% (+$5,505.71) | +1.00% (+$1,548.70) |
+| **$\alpha = 0.05$** (Baseline) | +26.06% (+$67,358.75) | **+12.80% (+$33,085.28)** | +7.07% (+$18,283.92) |
+| **$\alpha = 0.10$** (Stress Test) | **+47.35% (+$244,805.06)** | +35.46% (+$183,358.69) | +26.06% (+$134,717.50) |
+
+#### 8.5.5 Factorial Two-Way Matrix: $\alpha \times \eta$ (Cost Reduction % at $C_I = \$15.00$)
+
+| Loss Exposure ($\alpha$) | $\eta = 0.70$ | $\eta = 0.80$ | $\eta = 0.85$ (Baseline) | $\eta = 0.90$ | $\eta = 0.95$ |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **$\alpha = 0.03$** | +1.52% | +2.86% | +3.55% | +4.32% | +5.20% |
+| **$\alpha = 0.05$** | +7.26% | +10.79% | **+12.80%** | +15.21% | +17.91% |
+| **$\alpha = 0.10$** | +24.81% | +31.84% | +35.46% | +39.22% | +43.08% |
+
+### 8.6 Operational Implications
+
+1. **Calibrated Probabilities Enable Decision Modeling**: The observation-specific decision rule requires probabilistic risk estimates. The aggregated order-level probabilities achieved a Brier score of 0.1336 and an ECE of 7.13% on the held-out order-level evaluation set.
+2. **Order Value as an Essential Decision Covariate**: Predictive discriminative ability ($ROC\text{-}AUC = 96.13\%$) alone cannot establish operational value. By conditioning decisions on order financial stake $V_{\text{ord}, k}$, logistics operators avoid uneconomic interventions on low-value items.
+3. **Positive Simulated Savings Across the Evaluated Sensitivity Scenarios**: The simulated policy remained cost-saving across all 15 evaluated combinations of $\alpha$ and $C_I$ at the tested efficacy values (ranging from +1.00% under severe cost friction up to +47.35% in high-exposure operations).
+
 ---
 
-## 💰 8. Decision & Cost-Benefit Simulation
+## ⚠️ 9. Limitations
 
-To evaluate operational business value, we formulate an empirical decision-cost model parameterized by:
-- Late delivery SLA breach penalty: $C_{\text{late}} = \$50.00$
-- Pre-shipment expedited handling / carrier intervention: $C_{\text{intervene}} = \$15.00$
-- Imperfect mitigation effectiveness: $\eta = 0.85$ (applied strictly to true positives $y_i = 1 \land \hat{p}_i \ge \theta$)
-- Baseline unmitigated penalty cost: 24,967 late orders $\times \$50.00 = \mathbf{\$1,248,350.00}$ (on holdout test set).
-
-### Analytical Bayes Optimal Threshold Derivation
-$$\mathbb{E}[\text{Benefit}] = p \cdot C_{\text{late}} \cdot \eta \ge C_{\text{intervene}} \implies p^* = \frac{C_{\text{intervene}}}{C_{\text{late}} \cdot \eta} = \frac{\$15.00}{\$50.00 \times 0.85} \approx \mathbf{0.3529} \quad (\approx 0.353)$$
-
-### Empirical Policy Performance Across Probability Thresholds
-*(Data verified against `results/tables/decision_cost_simulation.csv`)*
-
-| Probability Threshold | Intervened Orders | Intervention Rate | Prevented Delays | Total Intervention Cost | Total Penalty Cost | Total Operational Cost | Net Cost Savings ($) | Cost Reduction (%) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Unmitigated Baseline** | 0 | 0.00% | 0 | $0.00 | $1,248,350.00 | $1,248,350.00 | $0.00 | 0.00% |
-| **$p \ge 0.10$** | 45,844 | 96.69% | 21,221 | $687,660.00 | $187,252.50 | $874,912.50 | +$373,437.50 | 29.91% |
-| **$p \ge 0.20$** | 41,459 | 87.44% | 20,943 | $621,885.00 | $201,192.50 | $823,077.50 | +$425,272.50 | 34.07% |
-| **$p \ge 0.30$ (Risk-Averse)** | 33,091 | 69.79% | 19,744 | $496,365.00 | $261,117.50 | $757,482.50 | **+$490,867.50** | **39.32%** |
-| **$p \ge 0.40$ (Grid Peak)** | **27,241** | **57.45%** | **18,229** | **$408,615.00** | **$336,852.50** | **$745,467.50** | **+$502,882.50** | **40.28%** |
-| **$p \ge 0.50$** | 23,385 | 49.32% | 16,764 | $350,775.00 | $410,122.50 | $760,897.50 | +$487,452.50 | 39.05% |
-| **$p \ge 0.60$** | 20,393 | 43.01% | 15,169 | $305,895.00 | $489,895.00 | $795,790.00 | +$452,560.00 | 36.25% |
-| **$p \ge 0.70$** | 17,144 | 36.16% | 12,974 | $257,160.00 | $599,630.00 | $856,790.00 | +$391,560.00 | 31.37% |
-| **$p \ge 0.80$** | 11,038 | 23.28% | 8,868 | $165,570.00 | $804,905.00 | $970,475.00 | +$277,875.00 | 22.26% |
-
-> **Operational Insight**: The empirical grid savings peak at **$p \ge 0.40$** with a **40.28% net cost reduction** (+$502,882.50 savings), aligning closely with the analytical optimum ($p^* = 0.353$). In comparison, **$p \ge 0.50$** achieves lower net savings ($+\$487,452.50$, 39.05%). Meanwhile, a risk-averse policy operating at **$p \ge 0.30$** prevents an additional 1,515 delay failures (19,744 vs. 18,229) with only a negligible economic trade-off (+$490,867.50, 39.32% savings), making it an attractive strategy for customer-centric retailers facing severe SLA termination clauses.
-
-### 8.1 Sensitivity Analysis Across Intervention Efficacies ($\eta$)
-To evaluate resilience against operational friction in carrier recovery, we assess policy performance across alternative efficacy values $\eta \in [0.70, 0.95]$ at the cost-optimal threshold ($p \ge 0.40$, $N_{\text{int}} = 27,241$, $N_{\text{late, int}} = 21,446$):
-$$\text{Net Savings}(\eta) = \eta \cdot (N_{\text{late, int}} \times \$50.00) - (N_{\text{intervened}} \times \$15.00) = \eta \cdot \$1,072,300.00 - \$408,615.00$$
-
-| Mitigation Efficacy ($\eta$) | Prevented Delays | Total Policy Cost ($) | Net Cost Savings ($) | Cost Reduction (%) |
-| :---: | :---: | :---: | :---: | :---: |
-| **$\eta = 0.70$** | 15,012 | $906,355.00 | +$341,995.00 | 27.40% |
-| **$\eta = 0.75$** | 16,085 | $852,740.00 | +$395,610.00 | 31.69% |
-| **$\eta = 0.80$** | 17,157 | $799,125.00 | +$449,225.00 | 35.99% |
-| **$\eta = 0.85$ (Baseline)** | **18,229** | **$745,467.50** | **+$502,882.50** | **40.28%** |
-| **$\eta = 0.90$** | 19,301 | $691,895.00 | +$556,455.00 | 44.58% |
-| **$\eta = 0.95$** | 20,374 | $638,280.00 | +$610,070.00 | 48.87% |
-
-$$\text{Operational Breakeven Efficacy: } \eta_{\text{break}} = \frac{\$408,615.00}{\$1,072,300.00} \approx \mathbf{38.11\%}$$
-Even if intervention success drops to 38.11%, the pre-shipment expedite policy breaks even, demonstrating remarkable operational robustness.
+1. **Synthetic Intervention Attribution**: The DataCo dataset lacks randomized controlled intervention trials; intervention efficacy ($\eta = 0.85$) and expediting cost ($C_I = \$15$) are parameterized simulation assumptions rather than empirically observed treatments.
+2. **Loss Exposure Benchmark**: The 5% loss proxy ($\alpha = 0.05$) is drawn from external empirical literature (Fisher et al., 2006) and does not reflect account-specific SLA penalty clauses or bespoke customer lifetime value models.
+3. **Observational Granularity**: Physical warehouse interventions operate at the packaging and dispatch level, whereas our primary operational unit is evaluated at the unique order level (`Order Id`). While all line items within each order share identical delivery outcomes in the dataset, physical packaging structures (such as split shipments across multiple packages) are unobserved in the transaction logs.
+4. **Single Supply-Chain Topology**: Empirical results reflect a single multichannel retail enterprise; generalizability across heavy industrial B2B freight or perishable cold-chain logistics requires separate empirical verification.
 
 ---
 
-## 🎓 9. Conclusion
+## 🔮 10. Future Research Directions
 
-1. **Academic Rigor**: Uniform scoping at order checkout, 5-fold CV out-of-fold target encoding, and McNemar test ($\chi^2 = 2457.39, p < 0.001$ with Edwards' continuity correction) establish benchmark validity without predictive leakage.
-2. **Probability Reliability**: Isotonic calibration transfers out-of-time to future test sets ($ECE = 1.25\%$) and out-of-domain geographic markets ($ECE = 7.20\%$).
-3. **Decision Support Utility**: Cost-benefit simulation demonstrates that probability-guided pre-shipment intervention delivers **40.28% peak cost reduction** ($+\$502,882.50$ net savings) in supply chain operations.
+1. **Field A/B Experimentation**: Executing randomized controlled trial (RCT) intervention rollouts in live fulfillment centers to estimate empirical treatment effects ($\eta$) and true expediting costs ($C_I$).
+2. **Multi-Action Cost Optimization**: Extending the binary decision model to multi-action escalation hierarchies (e.g., automated inventory re-allocation vs. express air courier vs. customer delay notification).
+3. **Constrained-Capacity Dispatching**: Incorporating dynamic warehouse labor and courier vehicle capacity constraints via integer programming to allocate limited intervention quotas.
+4. **End-to-End Decision-Focused Learning**: Integrating the order-value economic loss function directly into model training loss rather than performing post-hoc probability thresholding.
+
+---
+
+## 🎓 11. Conclusion
+
+1. **Academic Rigor**: Strict checkout-time scoping, 5-fold CV out-of-fold target encoding, and McNemar paired testing ($\chi^2 = 2457.39, p < 0.001$ with Edwards' continuity correction) confirm benchmark validity without predictive leakage.
+2. **Reliability Transfer**: Isotonic probability calibration successfully transfers out-of-time (2017 Future ECE: 10.45% $\rightarrow$ 1.25%) and out-of-domain (Pacific Asia ECE: 11.65% $\rightarrow$ 7.20%).
+3. **Order-Value-Aware Operational Utility**: Under the baseline economic assumptions ($\alpha=0.05$, $C_I=\$15$, and $\eta=0.85$), the observation-specific value-aware decision rule reduced simulated economic cost by **12.80% (\$33,085.28)** relative to the no-intervention baseline at the order-level operational aggregation. This estimate is conditional on the assumed loss exposure, intervention cost, and intervention efficacy and should therefore be interpreted as an offline counterfactual estimate rather than a causal estimate of realized operational savings.
+
+

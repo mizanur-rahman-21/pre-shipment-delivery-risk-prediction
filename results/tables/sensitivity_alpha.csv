@@ -1,0 +1,4 @@
+Loss Rate (alpha),Baseline Loss ($),Policy Cost ($),Net Savings ($),Cost Reduction (%),Intervention Rate (%)
+0.03,155113.21,149607.5,5505.71,3.55,4.15
+0.05,258522.01,225436.73,33085.28,12.8,14.01
+0.1,517044.03,333685.34,183358.69,35.46,39.35

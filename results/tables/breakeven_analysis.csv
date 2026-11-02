@@ -1,0 +1,2 @@
+Metric,Mean,Median,Min,Max,P25,P75,Infeasible (p_BE > 1.0),N
+Break-Even Probability (p_BE),2.5375,1.8338,0.3224,35.5691,1.0876,2.9306,40053 (84.47%),47415
