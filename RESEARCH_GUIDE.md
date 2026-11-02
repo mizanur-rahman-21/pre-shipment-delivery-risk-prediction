@@ -126,20 +126,44 @@ Trained on **Europe + LATAM** (89,172 samples) and evaluated on **Pacific Asia**
 
 ## 8. Order-Value-Based Economic Decision-Cost Simulation
 
-We model intervention economics with heterogeneous loss exposure ($L_k = \alpha V_{\text{ord}, k}$):
-- **Realized Historical Counterfactual Cost Formulation**:
-  $$C_k = I_k \bigl[ C_I + Y_k (1 - \eta) L_k \bigr] + (1 - I_k) Y_k L_k$$
-- **Observation-Specific Bayes Decision Rule**:
-  $$\boxed{p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}} \equiv p_{\text{BE}, k}}$$
-  $$I_k = \mathbf{1}\left[ p_{\text{ord}, k} > p_{\text{BE}, k} \right]$$
-- **Operational Granularity & Performance**:
-  - **Order-Level (`Order Id`, $N = 27{,}409$ unique orders)**: Evaluates $C_I = \$15.00$ per unique order. The Bayes decision rule flags 3,840 orders (14.01%), yielding **+12.80% simulated cost reduction (+\$33,085.28 savings)** over the \$258,522.01 baseline.
-  - **Line-Item Level**: Yields **+0.90% simulated cost reduction (+\$2,318.60)** across 1,073 intervened lines.
-  - **Static Threshold Evaluation**: Under the specified economic assumptions, the evaluated uniform fixed-threshold policies ($\tau \in [0.05, 0.95]$) were economically inferior to the observation-specific value-aware decision rule, generating negative returns (from $-69.26\%$ to $-0.89\%$).
-- **Sensitivity Matrix**:
-  - $\alpha \in \{0.03, 0.05, 0.10\}$: Simulated cost reductions are **+3.55%**, **+12.80%**, and **+35.46%**.
-  - $C_I \in \{\$10, \$15, \$20\}$: Simulated cost reductions are **+26.06%**, **+12.80%**, and **+7.07%**.
-  - Complete tables: `results/tables/decision_cost_simulation.csv`, `results/tables/decision_policy_comparison.csv`, `results/tables/sensitivity_*.csv`.
+### 8.1 Methodological Formulation & Order Loss Exposure
+We model intervention economics with heterogeneous order loss exposure:
+$$L_k = \alpha \cdot V_{\text{ord}, k}$$
+where baseline loss exposure is $\alpha = 0.05$ (Fisher et al., 2006), expediting fee is $C_I = \$15.00$, and mitigation efficacy is $\eta = 0.85$.
+
+The observation-specific Bayes decision rule is:
+$$\boxed{p_{\text{ord}, k} > \frac{C_I}{\eta \alpha V_{\text{ord}, k}} \equiv p_{\text{BE}, k}}$$
+$$I_k = \mathbf{1}\left[ p_{\text{ord}, k} > p_{\text{BE}, k} \right]$$
+
+Realized historical counterfactual cost:
+$$C_k = I_k \bigl[ C_I + Y_k (1 - \eta) L_k \bigr] + (1 - I_k) Y_k L_k$$
+
+### 8.2 Operational Policy Comparison Table ($N = 27{,}409$ Unique Orders)
+
+| Policy Configuration | Intervention Threshold | Flagged Orders | Intervention Rate (%) | Mean Predicted Risk ($\bar{p}$) | Mean Break-Even ($\bar{p}_{\text{BE}}$) | Total Policy Cost ($) | Net Savings ($) | Simulated Cost Reduction (%) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **No-Intervention Baseline** | — | 0 | 0.00% | — | — | \$258,522.01 | \$0.00 | 0.00% |
+| **Uniform Static Policy** | $\tau = 0.10$ | 26,586 | 97.00% | 0.5447 | 1.9289 | \$437,568.30 | $-\$179,046.29$ | $-69.26\%$ |
+| **Uniform Static Policy** | $\tau = 0.30$ | 18,940 | 69.10% | 0.6738 | 1.8989 | \$338,496.00 | $-\$79,973.98$ | $-30.94\%$ |
+| **Uniform Static Policy** | $\tau = 0.50$ | 13,560 | 49.47% | 0.7878 | 1.8792 | \$289,056.29 | $-\$30,534.27$ | $-11.81\%$ |
+| **Uniform Static Policy** | $\tau = 0.70$ | 9,745 | 35.55% | 0.8600 | 1.8818 | \$271,784.24 | $-\$13,262.22$ | $-5.13\%$ |
+| **Uniform Static Policy** | $\tau = 0.80$ | 6,641 | 24.23% | 0.9102 | 1.8468 | \$263,258.17 | $-\$4,736.16$ | $-1.83\%$ |
+| **Uniform Static Policy** | $\tau = 0.95$ | 2,634 | 9.61% | 0.9999 | 1.8817 | \$260,822.20 | $-\$2,300.19$ | $-0.89\%$ |
+| **Value-Aware Bayes Rule** | $\mathbf{p_{\text{ord}} > p_{\text{BE},\text{ord}}}$ | **3,840** | **14.01%** | **0.8064** | **0.5782** | **\$225,436.73** | **+\$33,085.28** | **+12.80%** |
+
+### 8.3 Intervention Pool Audit Log
+- **Intervened Orders**: 3,840 (14.01% intervention rate)
+- **Actually Late ($Y = 1$)**: 3,212 orders (**83.65% precision**)
+- **Actually On-Time ($Y = 0$)**: 628 orders (**16.35% false alarms**; incurring only the \$15 intervention fee)
+- **Mean Predicted Risk**: 0.8064 vs. Observed Late Rate: 83.65%
+- **Mean Break-Even Threshold**: 0.5782
+- **Mean Order Value**: \$691.95 (Feasibility threshold cutoff: \$352.94)
+
+### 8.4 Sensitivity Analysis Summary
+- Across $\alpha \in \{0.03, 0.05, 0.10\}$: Simulated cost reductions are **+3.55%**, **+12.80%**, and **+35.46%**.
+- Across $C_I \in \{\$10, \$15, \$20\}$: Simulated cost reductions are **+26.06%**, **+12.80%**, and **+7.07%**.
+- Across $\eta \in [0.70, 0.95]$: Simulated cost reductions range from **+7.26%** up to **+17.91%**.
+- Complete tables: `results/tables/decision_cost_simulation.csv`, `results/tables/decision_policy_comparison.csv`, `results/tables/sensitivity_*.csv`.
 
 ---
 
